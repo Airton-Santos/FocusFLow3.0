@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Button, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
 import { db } from '@/firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import colors from '@/constants/colors';
+import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons'; // Para o ícone do círculo com X
 
 const TaskDetails = () => {
   const { id } = useLocalSearchParams(); // Obtém o ID da URL
@@ -84,7 +86,16 @@ const TaskDetails = () => {
       <Text style={styles.title}>Detalhes da Tarefa</Text>
       <Text style={styles.taskTitle}>{tarefa.titulo}</Text>
       <Text style={styles.taskDescription}>{tarefa.description}</Text>
-      <Text style={styles.taskPriority}>Prioridade: {tarefa.prioridade}</Text>
+
+      {/* Exibe a prioridade da tarefa com ícones */}
+      <View style={styles.priorityContainer}>
+        <Text style={styles.taskPriority}>Prioridade:</Text>
+        <MaterialIcons
+          name={tarefa.prioridade === 'Alta' ? 'warning' : tarefa.prioridade === 'Média' ? 'warning' : 'warning'}
+          size={24}
+          color={tarefa.prioridade === 'Alta' ? 'red' : tarefa.prioridade === 'Média' ? colors.Amarelo01 : colors.AzulCinzentado}
+        />
+      </View>
 
       {/* Exibe o status da tarefa */}
       <Text style={[styles.status, tarefa.concluida ? styles.statusConcluida : styles.statusNaoConcluida]}>
@@ -97,15 +108,27 @@ const TaskDetails = () => {
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item, index }) => (
           <TouchableOpacity style={styles.subtarefaContainer} onPress={() => toggleSubtarefa(index)}>
-            <Text style={[styles.subtarefaTexto, item.concluida && styles.subtarefaConcluida]}>
-              {item.nome}
-            </Text>
+            <View style={styles.subtarefaRow}>
+              {/* Ícone de círculo com "X" para subtarefas não concluídas */}
+              <MaterialCommunityIcons
+                name={item.concluida ? 'check-circle' : 'circle-slice-8'}
+                size={24}
+                color={item.concluida ? 'green' : 'red'}
+              />
+              <Text style={[styles.subtarefaTexto, item.concluida && styles.subtarefaConcluida]}>
+                {item.nome}
+              </Text>
+            </View>
           </TouchableOpacity>
         )}
       />
 
-      <Button title="Salvar Progresso" onPress={salvarProgresso} />
-      <Button title="Voltar" onPress={voltar} color="red" />
+      <TouchableOpacity style={styles.button} onPress={salvarProgresso}>
+        <Text style={styles.buttonText}>Salvar Progresso</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={[styles.button, styles.buttonVoltar]} onPress={voltar}>
+        <Text style={styles.buttonTextVoltar}>Voltar</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -136,7 +159,14 @@ const styles = StyleSheet.create({
   },
   taskPriority: {
     color: '#FFF',
-    fontSize: 14,
+    fontSize: 20,
+    marginBottom: 10,
+    fontWeight: 'bold'
+  },
+  priorityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 10,
   },
   status: {
@@ -148,7 +178,7 @@ const styles = StyleSheet.create({
     color: 'green',
   },
   statusNaoConcluida: {
-    color: 'red',
+    color: colors.LaranjaClaro,
   },
   subtitle: {
     fontSize: 18,
@@ -180,5 +210,27 @@ const styles = StyleSheet.create({
     color: colors.ColorText,
     fontSize: 18,
     marginTop: 10,
+  },
+  button: {
+    backgroundColor: colors.AzulCinzentado,
+    padding: 10,
+    borderRadius: 8,
+    marginVertical: 5,
+    alignItems: 'center',
+  },
+  buttonTextVoltar: {
+    color: colors.ColorText,
+    fontSize: 16,
+  },
+  buttonText: {
+    color: colors.Preto0,
+    fontSize: 16,
+  },
+  buttonVoltar: {
+    backgroundColor: 'red',
+  },
+  subtarefaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
