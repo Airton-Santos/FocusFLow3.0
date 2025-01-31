@@ -8,6 +8,20 @@ interface RobotIntroProps {
 const SecondRobotIntro: React.FC<RobotIntroProps> = ({ onStart }) => {
   const [step, setStep] = useState(0);
   const [robotPosition] = useState(new Animated.Value(0)); // Posição do robô para animação
+  const [timer, setTimer] = useState<number>(5); // Tempo de espera de 5 segundos
+  const [timerActive, setTimerActive] = useState<boolean>(true); // Controle do estado do temporizador
+
+  useEffect(() => {
+    if (timerActive && timer > 0) {
+      const interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000); // Decrementa o timer a cada 1 segundo
+
+      return () => clearInterval(interval); // Limpa o intervalo quando o componente for desmontado
+    } else if (timer === 0) {
+      setTimerActive(false); // Desativa o temporizador quando ele chega a zero
+    }
+  }, [timer, timerActive]);
 
   useEffect(() => {
     // Animação contínua e suave para o robô
@@ -56,6 +70,8 @@ const SecondRobotIntro: React.FC<RobotIntroProps> = ({ onStart }) => {
   const handleNextStep = () => {
     if (step < tutorialSteps.length - 1) {
       setStep(step + 1);
+      setTimer(5); // Resetando o timer para 5 segundos no próximo passo
+      setTimerActive(true); // Reativando o timer
     } else {
       onStart(); // Fim do tutorial, chama a função para começar
     }
@@ -69,9 +85,13 @@ const SecondRobotIntro: React.FC<RobotIntroProps> = ({ onStart }) => {
       {/* Balão de Fala */}
       <View style={styles.speechBubble}>
         <Text style={styles.speechText}>{tutorialSteps[step].message}</Text>
-        <TouchableOpacity style={styles.button} onPress={handleNextStep}>
-          <Text style={styles.buttonText}>{step === tutorialSteps.length - 1 ? 'Começar' : 'OK'}</Text>
-        </TouchableOpacity>
+        {timerActive ? (
+          <Text style={styles.timerText}>{timer} segundos restantes...</Text> // Exibe o tempo restante
+        ) : (
+          <TouchableOpacity style={styles.button} onPress={handleNextStep}>
+            <Text style={styles.buttonText}>{step === tutorialSteps.length - 1 ? 'Começar' : 'OK'}</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Robô com animação suave */}
@@ -115,6 +135,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333',
     marginBottom: 10,
+  },
+  timerText: {
+    fontSize: 14,
+    color: '#333',
+    marginTop: 5,
   },
   button: {
     backgroundColor: '#4CAF50',
