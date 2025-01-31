@@ -9,7 +9,7 @@ const TaskDetails = () => {
   const { id } = useLocalSearchParams(); // Obtém o ID da URL
   const [tarefa, setTarefa] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [topicos, setTopicos] = useState<any[]>([]);
+  const [subtarefas, setSubtarefas] = useState<any[]>([]); // Alterado de 'topicos' para 'subtarefas'
   const router = useRouter();
 
   const voltar = () => {
@@ -24,7 +24,7 @@ const TaskDetails = () => {
         if (docSnap.exists()) {
           const dados = docSnap.data();
           setTarefa(dados);
-          setTopicos(dados.topicos || []);
+          setSubtarefas(dados.subtarefas || []); // Carrega as subtarefas
         } else {
           console.log("Tarefa não encontrada!");
         }
@@ -40,11 +40,11 @@ const TaskDetails = () => {
     carregarDetalhes();
   }, [id]);
 
-  const toggleTopico = (index: number) => {
-    setTopicos((prevTopicos) => {
-      const novosTopicos = [...prevTopicos];
-      novosTopicos[index].concluido = !novosTopicos[index].concluido;
-      return novosTopicos;
+  const toggleSubtarefa = (index: number) => {
+    setSubtarefas((prevSubtarefas) => {
+      const novasSubtarefas = [...prevSubtarefas];
+      novasSubtarefas[index].concluida = !novasSubtarefas[index].concluida;
+      return novasSubtarefas;
     });
   };
 
@@ -52,19 +52,19 @@ const TaskDetails = () => {
     if (!id) return;
 
     try {
-      const todosConcluidos = topicos.every((topico) => topico.concluido);
+      const todasConcluidas = subtarefas.every((subtarefa) => subtarefa.concluida);
       await updateDoc(doc(db, "Tarefas", id as string), {
-        topicos: topicos,
-        concluida: todosConcluidos, // Se todos os tópicos forem concluídos, a tarefa será marcada como concluída.
+        subtarefas: subtarefas,
+        concluida: todasConcluidas, // Se todas as subtarefas forem concluídas, a tarefa será marcada como concluída.
       });
 
       setTarefa((prevTarefa: any) => ({
         ...prevTarefa,
-        topicos: topicos,
-        concluida: todosConcluidos,
+        subtarefas: subtarefas,
+        concluida: todasConcluidas,
       }));
 
-      alert(todosConcluidos ? "Tarefa concluída!" : "Progresso salvo!");
+      alert(todasConcluidas ? "Tarefa concluída!" : "Progresso salvo!");
     } catch (error) {
       console.error("Erro ao salvar progresso: ", error);
     }
@@ -91,13 +91,13 @@ const TaskDetails = () => {
         {tarefa.concluida ? "Tarefa Concluída" : "Tarefa Não Concluída"}
       </Text>
 
-      <Text style={styles.subtitle}>Tópicos:</Text>
+      <Text style={styles.subtitle}>Subtarefas:</Text>
       <FlatList
-        data={topicos}
+        data={subtarefas}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item, index }) => (
-          <TouchableOpacity style={styles.topicoContainer} onPress={() => toggleTopico(index)}>
-            <Text style={[styles.topicoTexto, item.concluido && styles.topicoConcluido]}>
+          <TouchableOpacity style={styles.subtarefaContainer} onPress={() => toggleSubtarefa(index)}>
+            <Text style={[styles.subtarefaTexto, item.concluida && styles.subtarefaConcluida]}>
               {item.nome}
             </Text>
           </TouchableOpacity>
@@ -156,17 +156,17 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     color: '#FFF',
   },
-  topicoContainer: {
+  subtarefaContainer: {
     padding: 10,
     backgroundColor: '#FFF',
     borderRadius: 8,
     marginVertical: 5,
   },
-  topicoTexto: {
+  subtarefaTexto: {
     fontSize: 16,
     color: '#000',
   },
-  topicoConcluido: {
+  subtarefaConcluida: {
     textDecorationLine: 'line-through',
     color: 'gray',
   },

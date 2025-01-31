@@ -5,7 +5,7 @@ import { auth, db } from '@/firebaseConfig';
 import { addDoc, collection } from 'firebase/firestore';
 import { Picker } from '@react-native-picker/picker';
 
-interface TarefaTopico {
+interface Subtarefa {
   nome: string;
   concluido: boolean;
 }
@@ -15,34 +15,34 @@ const AddTask = () => {
   const [descricao, setDescription] = useState('');
   const [prioridade, setPrioridade] = useState('Média');
   const [loading, setLoading] = useState(false);
-  const [topicos, setTopicos] = useState<TarefaTopico[]>([]); // Tipagem de tópicos
-  const [novoTopico, setNovoTopico] = useState('');
+  const [subtarefas, setSubtarefas] = useState<Subtarefa[]>([]); // Tipagem de subtarefas
+  const [novaSubtarefa, setNovaSubtarefa] = useState('');
   const [mensagemSucesso, setMensagemSucesso] = useState('');
   const user = auth.currentUser;
 
-  const adicionarTopico = () => {
-    if (novoTopico.trim()) {
-      const novoTarefaTopico: TarefaTopico = { nome: novoTopico, concluido: false };
-      setTopicos([...topicos, novoTarefaTopico]);
-      setNovoTopico('');
+  const adicionarSubtarefa = () => {
+    if (novaSubtarefa.trim()) {
+      const novaTarefaSubtarefa: Subtarefa = { nome: novaSubtarefa, concluido: false };
+      setSubtarefas([...subtarefas, novaTarefaSubtarefa]);
+      setNovaSubtarefa('');
     }
   };
 
   const alternarConclusao = (index: number) => {
-    const novaLista = [...topicos];
+    const novaLista = [...subtarefas];
     novaLista[index].concluido = !novaLista[index].concluido;
-    setTopicos(novaLista);
+    setSubtarefas(novaLista);
   };
 
   const calcularProgresso = () => {
-    if (topicos.length === 0) return 0;
-    const concluidos = topicos.filter((topico) => topico.concluido).length;
-    return (concluidos / topicos.length) * 100;
+    if (subtarefas.length === 0) return 0;
+    const concluidos = subtarefas.filter((subtarefa) => subtarefa.concluido).length;
+    return (concluidos / subtarefas.length) * 100;
   };
 
   const handleAddTask = async () => {
-    if (!titulo.trim() || !descricao.trim() || topicos.length === 0) {
-      console.error("Preencha todos os campos e adicione pelo menos um tópico.");
+    if (!titulo.trim() || !descricao.trim() || subtarefas.length === 0) {
+      console.error("Preencha todos os campos e adicione pelo menos uma subtarefa.");
       return;
     }
   
@@ -59,7 +59,7 @@ const AddTask = () => {
         titulo,
         description: descricao,
         prioridade,
-        topicos,
+        subtarefas,
         progresso: calcularProgresso(),
         conclusaoDaTarefa: false,
         idUser: user.uid, // Acessando o UID do usuário
@@ -68,8 +68,8 @@ const AddTask = () => {
       // Limpa os campos após adicionar a tarefa
       setTitulo('');
       setDescription('');
-      setNovoTopico('');
-      setTopicos([]);
+      setNovaSubtarefa('');
+      setSubtarefas([]);
       setMensagemSucesso("Tarefa adicionada com sucesso!");
     } catch (error) {
       console.error("Erro ao adicionar tarefa: ");
@@ -110,24 +110,24 @@ const AddTask = () => {
         <Picker.Item label="Baixa" value="Baixa" />
       </Picker>
 
-      <Text style={styles.label}>Tópicos:</Text>
+      <Text style={styles.label}>Subtarefas:</Text>
       <TextInput
         style={styles.input}
-        placeholder="Novo Tópico"
+        placeholder="Nova Subtarefa"
         placeholderTextColor="#FFF"
-        value={novoTopico}
-        onChangeText={setNovoTopico}
+        value={novaSubtarefa}
+        onChangeText={setNovaSubtarefa}
       />
       <Button
         mode="contained"
-        onPress={adicionarTopico}
+        onPress={adicionarSubtarefa}
         style={styles.addTopicButton}
       >
-        Adicionar Tópico
+        Adicionar Subtarefa
       </Button>
 
       <FlatList
-        data={topicos}
+        data={subtarefas}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item, index }) => (
           <TouchableOpacity onPress={() => alternarConclusao(index)}>

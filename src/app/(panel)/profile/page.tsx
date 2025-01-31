@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Image, Alert } from 'react-native';
-import { getAuth, signOut, updateProfile, sendEmailVerification, verifyBeforeUpdateEmail } from 'firebase/auth';
+import { getAuth, signOut, updateProfile, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword } from 'firebase/auth';
 import { Button } from 'react-native-paper';
 import md5 from 'md5';
 import colors from '@/constants/colors';
 import { useRouter } from 'expo-router';
-
 
 const ProfileScreen = () => {
   const auth = getAuth();
@@ -14,6 +13,8 @@ const ProfileScreen = () => {
 
   const [name, setName] = useState<string>(user?.displayName || '');
   const [newEmail, setNewEmail] = useState<string>('');
+  const [currentPassword, setCurrentPassword] = useState<string>(''); // Não necessário para atualizar a senha
+  const [newPassword, setNewPassword] = useState<string>('');
 
   const generateGravatarUrl = (email: string | null): string => {
     if (!email) return 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=identicon';
@@ -54,6 +55,20 @@ const ProfileScreen = () => {
     }
   };
 
+  const handleUpdatePassword = async () => {
+    if (!user || !newPassword) {
+      Alert.alert('Erro', 'Por favor, preencha a nova senha.');
+      return;
+    }
+    try {
+      // Apenas se o usuário estiver autenticado, podemos chamar updatePassword diretamente
+      await updatePassword(user, newPassword);
+      Alert.alert('Sucesso', 'Senha atualizada com sucesso!');
+    } catch (error: any) {
+      Alert.alert('Erro', 'Não foi possível atualizar a senha. Verifique sua conexão ou tente novamente.');
+    }
+  };
+
   const deslogar = async () => {
     await signOut(auth);
     router.replace('/(auth)/mainPage/page');
@@ -73,6 +88,18 @@ const ProfileScreen = () => {
       <TextInput style={styles.input} value={newEmail} onChangeText={setNewEmail} placeholder="Seu novo e-mail" keyboardType="email-address" />
       <Button onPress={handleUpdateEmail} style={styles.btn} labelStyle={styles.btnText} contentStyle={styles.btnTamanho} mode="contained">
         Atualizar Email
+      </Button>
+
+      <Text style={styles.label}>Nova Senha:</Text>
+      <TextInput 
+        style={styles.input} 
+        value={newPassword} 
+        onChangeText={setNewPassword} 
+        placeholder="Sua nova senha" 
+        secureTextEntry 
+      />
+      <Button onPress={handleUpdatePassword} style={styles.btn} labelStyle={styles.btnText} contentStyle={styles.btnTamanho} mode="contained">
+        Atualizar Senha
       </Button>
 
       <Button onPress={deslogar} style={styles.btnDeslogar} labelStyle={styles.btnText} contentStyle={styles.btnTamanho} mode="contained">
@@ -127,7 +154,6 @@ const styles = StyleSheet.create({
     color: colors.ColorText,
     fontSize: 15,
   },
-
   btnDeslogar: {
     margin: 50,
     backgroundColor: colors.ColorBtnSair
