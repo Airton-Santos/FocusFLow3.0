@@ -1,18 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert} from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Modal } from 'react-native';
 import { db } from '@/firebaseConfig';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { auth } from '@/firebaseConfig';
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
+import { MaterialIcons } from '@expo/vector-icons';  // Ícones para usarmos
+import colors from '@/constants/colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import RobotIntro from '@/src/componentes/roboIntro';
+
 
 const TaskList = () => {
   const [tarefas, setTarefas] = useState<any[]>([]); // Tipo de tarefas
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
   const user = auth.currentUser; // Obter o usuário atual
+  const [showIntro, setShowIntro] = useState(false);
 
+  useEffect(() => {
+    const checkFirstTime = async () => {
+      const hasSeenIntro = await AsyncStorage.getItem('hasSeenIntro');
+      if (!hasSeenIntro) {
+        setShowIntro(true);
+      }
+    };
+    checkFirstTime();
+  }, []);
+
+  const handleIntroDismiss = async () => {
+    await AsyncStorage.setItem('hasSeenIntro', 'true');
+    setShowIntro(false);
+  };
 
   const checkEmailVerification = () => {
     if (user && !user.emailVerified) {
@@ -23,60 +42,70 @@ const TaskList = () => {
           { text: "Ok" }
         ]
       );
-
       verifyOff();
     }
   };
 
   const verifyOff = async () => {
     try {
-          await signOut(auth);
-          router.replace('/(auth)/mainPage/page'); // Redireciona para a tela principal após deslogar
-          console.log('Deslogado com sucesso');
-        } catch (error) {
-          Alert.alert("Erro", "Ocorreu um erro ao tentar sair.");
-          console.error('Erro ao tentar deslogar:', error); // Loga o erro para depuração
-        }
-  }
+      await signOut(auth);
+      router.replace('/(auth)/mainPage/page'); // Redireciona para a tela principal após deslogar
+      console.log('Deslogado com sucesso');
+    } catch (error) {
+      Alert.alert("Erro", "Ocorreu um erro ao tentar sair.");
+      console.error('Erro ao tentar deslogar:', error); // Loga o erro para depuração
+    }
+  };
 
-
-  // Função para calcular o progresso de cada tarefa com base nos tópicos
-  const calcularProgresso = (topicos: { concluido: boolean }[]) => {
-    if (topicos.length === 0) return 0;
-    const concluidos = topicos.filter((topico) => topico.concluido).length;
-    return (concluidos / topicos.length) * 100;
+  // Função para calcular o progresso de cada tarefa com base nas subtarefas
+  const calcularProgresso = (subtarefas: { concluido: boolean }[]) => {
+    if (subtarefas.length === 0) return 0;
+    const concluidos = subtarefas.filter((subtarefa) => subtarefa.concluido).length;
+    return (concluidos / subtarefas.length) * 100;
   };
 
   // Carregar tarefas do Firestore filtrando pelo idUser do usuário
-  const carregarTarefas = async () => {
+  const carregarTarefas = () => {
     setLoading(true);
     if (user) {
-      try {
-        const tarefasCollection = collection(db, "Tarefas");
-        const q = query(tarefasCollection, where("idUser", "==", user.uid)); // Filtra tarefas pelo idUser
-        const querySnapshot = await getDocs(q);
+      const tarefasCollection = collection(db, "Tarefas");
+      const q = query(tarefasCollection, where("idUser", "==", user.uid));
 
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const tarefasData: any[] = [];
         querySnapshot.forEach((doc) => {
           tarefasData.push({ ...doc.data(), id: doc.id });
         });
-        setTarefas(tarefasData);
-      } catch (error) {
-        console.error("Erro ao carregar tarefas: ", error);
-      } finally {
+        setTarefas(tarefasData);  // Atualiza a lista de tarefas
+        setLoading(false);  // Pode definir o loading como false depois de receber os dados
+      }, (error) => {
+        console.error("Erro ao ouvir as tarefas: ", error);
         setLoading(false);
-      }
+      });
+
+      // Retorne a função de desinscrição quando o componente for desmontado
+      return () => unsubscribe();
     }
   };
 
   // Carregar tarefas ao montar o componente
   useEffect(() => {
     checkEmailVerification();
-    carregarTarefas();
+    carregarTarefas();  // Inicia a escuta das tarefas em tempo real
+    return () => {  // Cancela a escuta quando o componente for desmontado
+      setLoading(false);  // Pode resetar o estado de loading aqui, caso necessário
+    };
   }, []);
 
   return (
     <View style={styles.container}>
+
+      <Modal visible={showIntro} transparent animationType="fade">
+        <View style={styles.modalBackground}>
+          <RobotIntro onStart={handleIntroDismiss} />
+        </View>
+      </Modal>
+
       <Text style={styles.title}>Minhas Tarefas</Text>
 
       {loading ? (
@@ -87,15 +116,31 @@ const TaskList = () => {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={styles.taskContainer}>
-              <Text style={styles.taskTitle}>{item.titulo}</Text>
+              <View style={styles.header}>
+                <Text style={styles.taskTitle}>{item.titulo}</Text>
+                <MaterialIcons 
+                  name={item.prioridade === 'Alta' ? 'warning' : item.prioridade === 'Média' ? 'warning' : 'warning'}
+                  size={24} 
+                  color={item.prioridade === 'Alta' ? 'red' : item.prioridade === 'Média' ? colors.Amarelo01 : colors.AzulCinzentado}
+                />
+              </View>
+
               <Text style={styles.taskDescription}>{item.description}</Text>
-              <Text style={styles.taskPriority}>Prioridade: {item.prioridade}</Text>
-              <Text style={[styles.status, item.concluida? styles.statusConcluida : styles.statusNaoConcluida]}>
-                {item.concluida ? "Concluída" : "Não Concluída"}
-              </Text>
+
+              {/* Ícone para o status da tarefa */}
+              <View style={styles.statusContainer}>
+                <MaterialIcons
+                  name={item.concluida ? 'check-circle' : 'cancel'}
+                  size={30}
+                  color={item.concluida ? colors.Verde0 : colors.LaranjaClaro}
+                />
+                <Text style={[styles.status, item.concluida ? styles.statusConcluida : styles.statusNaoConcluida]}>
+                  {item.concluida ? "Concluída" : "Não Concluída"}
+                </Text>
+              </View>
 
               <Text style={styles.progresso}>
-                Progresso: {calcularProgresso(item.topicos).toFixed(2)}%
+                Progresso: {calcularProgresso(item.subtarefas).toFixed(2)}%
               </Text>
 
               <TouchableOpacity
@@ -137,20 +182,37 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 15,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   taskTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#FFF',
+    flex: 1,
   },
   taskDescription: {
     color: '#FFF',
     fontSize: 16,
     marginVertical: 5,
   },
-  taskPriority: {
-    color: '#FFF',
-    fontSize: 14,
-    marginVertical: 5,
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  status: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 10,
+  },
+  statusConcluida: {
+    color: colors.Verde0,
+  },
+  statusNaoConcluida: {
+    color: colors.LaranjaClaro,
   },
   progresso: {
     color: '#FFF',
@@ -168,15 +230,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
   },
-  status: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginVertical: 10,
-  },
-  statusConcluida: {
-    color: 'green',
-  },
-  statusNaoConcluida: {
-    color: 'red',
+
+  modalBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
