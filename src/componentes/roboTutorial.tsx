@@ -10,7 +10,7 @@ const SecondRobotIntro: React.FC<RobotIntroProps> = ({ onStart }) => {
 
   const tutorialSteps = [
     {
-      message: "Olá! Eu sou o Robo2, pronto para te ajudar no FocusFlow!",
+      message: "Olá! Eu sou o MiniFlow, pronto para te ajudar no FocusFlow!",
     },
     {
       message:
