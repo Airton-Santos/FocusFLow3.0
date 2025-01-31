@@ -18,6 +18,15 @@ const TaskList = () => {
   const user = auth.currentUser; // Obter o usuário atual
   const [showIntro, setShowIntro] = useState(false);
 
+  // useEffect(() => {
+  //   const resetIntro = async () => {
+  //     await AsyncStorage.removeItem('hasSeenIntro'); // Apaga o dado salvo
+  //     console.log("AsyncStorage resetado! O robô de introdução deve aparecer novamente.");
+  //   };
+  //   resetIntro();
+  // }, []);
+  
+
   useEffect(() => {
     const checkFirstTime = async () => {
       const hasSeenIntro = await AsyncStorage.getItem('hasSeenIntro');

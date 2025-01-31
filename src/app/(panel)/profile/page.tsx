@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Image, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, StyleSheet, Image, Alert } from 'react-native';
 import { getAuth, signOut, updateProfile, sendEmailVerification, verifyBeforeUpdateEmail } from 'firebase/auth';
+import { Button } from 'react-native-paper';
 import md5 from 'md5';
 import colors from '@/constants/colors';
 import { useRouter } from 'expo-router';
+
 
 const ProfileScreen = () => {
   const auth = getAuth();
@@ -13,86 +15,69 @@ const ProfileScreen = () => {
   const [name, setName] = useState<string>(user?.displayName || '');
   const [newEmail, setNewEmail] = useState<string>('');
 
-  // Função para gerar URL do Gravatar com o email
   const generateGravatarUrl = (email: string | null): string => {
     if (!email) return 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=identicon';
     const hash = md5(email.trim().toLowerCase());
     return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
   };
 
-  // Função para atualizar o nome do usuário
   const handleUpdateName = async () => {
     if (!user) {
       Alert.alert('Erro', 'Usuário não autenticado!');
       return;
     }
-
     try {
-      await updateProfile(user, {
-        displayName: name,
-      });
+      await updateProfile(user, { displayName: name });
       Alert.alert('Sucesso', 'Nome atualizado com sucesso!');
     } catch (error: any) {
       Alert.alert('Erro', error.message);
     }
   };
 
-  // Função para atualizar o email
   const handleUpdateEmail = async () => {
     if (!user || !newEmail) {
       Alert.alert('Erro', 'Por favor, insira um novo e-mail válido.');
       return;
     }
-
-    // Verifica se o e-mail foi alterado
     if (newEmail === user.email) {
       Alert.alert('Erro', 'O novo e-mail deve ser diferente do atual.');
       return;
     }
-
     try {
-      // Enviar a verificação de e-mail para o novo e-mail
-      await verifyBeforeUpdateEmail(user, newEmail); // Corrigido aqui!
+      await verifyBeforeUpdateEmail(user, newEmail);
       await sendEmailVerification(user);
-
-      // Desloga o usuário após enviar a verificação de e-mail
       await signOut(auth);
       router.replace('/(auth)/mainPage/page');
-      console.log('Deslogado com sucesso');
       Alert.alert('Sucesso', 'Verificação de e-mail enviada. Verifique sua caixa de entrada.');
     } catch (error: any) {
       Alert.alert('Erro', 'Não foi possível atualizar o e-mail.');
     }
   };
 
+  const deslogar = async () => {
+    await signOut(auth);
+    router.replace('/(auth)/mainPage/page');
+  }
+
   return (
     <View style={styles.screen}>
-      {/* Exibindo a foto do perfil do usuário */}
-      <Image
-        source={{ uri: generateGravatarUrl(user?.email || null) }}
-        style={styles.profileImage}
-      />
-
-      {/* Exibindo o nome e permitindo edição */}
+      <Image source={{ uri: generateGravatarUrl(user?.email || null) }} style={styles.profileImage} />
+      
       <Text style={styles.label}>Nome:</Text>
-      <TextInput
-        style={styles.input}
-        value={name}
-        onChangeText={setName}
-        placeholder="Seu nome"
-      />
-      <Button title="Atualizar Nome" onPress={handleUpdateName} />
+      <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Seu nome" />
+      <Button onPress={handleUpdateName} style={styles.btn} labelStyle={styles.btnText} contentStyle={styles.btnTamanho} mode="contained">
+        Atualizar Nome
+      </Button>
 
-      {/* Exibindo o email e permitindo edição */}
       <Text style={styles.label}>Novo E-mail:</Text>
-      <TextInput
-        style={styles.input}
-        value={newEmail}
-        onChangeText={setNewEmail}
-        placeholder="Seu novo e-mail"
-        keyboardType="email-address"
-      />
-      <Button title="Atualizar Email" onPress={handleUpdateEmail} />
+      <TextInput style={styles.input} value={newEmail} onChangeText={setNewEmail} placeholder="Seu novo e-mail" keyboardType="email-address" />
+      <Button onPress={handleUpdateEmail} style={styles.btn} labelStyle={styles.btnText} contentStyle={styles.btnTamanho} mode="contained">
+        Atualizar Email
+      </Button>
+
+      <Button onPress={deslogar} style={styles.btnDeslogar} labelStyle={styles.btnText} contentStyle={styles.btnTamanho} mode="contained">
+        Deslogar
+      </Button>
     </View>
   );
 };
@@ -111,12 +96,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
     color: colors.ColorText,
     marginTop: 15,
   },
   input: {
+    width: '100%',
     height: 40,
     borderColor: colors.Preto0,
     borderWidth: 1,
@@ -125,6 +111,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: 'white',
   },
+  btn: {
+    borderRadius: 8,
+    backgroundColor: colors.Ciano0,
+    width: '100%',
+  },
+  btnTamanho: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 40,
+  },
+  btnText: {
+    textAlign: 'center',
+    fontWeight: 'bold',
+    color: colors.ColorText,
+    fontSize: 15,
+  },
+
+  btnDeslogar: {
+    margin: 50,
+    backgroundColor: colors.ColorBtnSair
+  }
 });
 
 export default ProfileScreen;
