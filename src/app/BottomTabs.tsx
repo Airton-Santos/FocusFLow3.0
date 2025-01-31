@@ -3,6 +3,7 @@ import { BottomNavigation } from 'react-native-paper';
 import HomeScreen from '@/src/app/(panel)/Home/page';
 import AddTaskScreen from '@/src/app/(panel)/AddTasks/page';
 import ProfileScreen from '@/src/app/(panel)/profile/page';
+import TutorialScreen from '@/src/app/(panel)/Info/page'; // Importando a tela do tutorial
 import { StyleSheet } from 'react-native';
 import colors from '@/constants/colors';
 
@@ -19,6 +20,7 @@ export default function BottomTabs() {
     { key: 'home', title: 'Home', focusedIcon: 'home', unfocusedIcon: 'home-outline' },
     { key: 'addTask', title: 'Add', focusedIcon: 'plus-box', unfocusedIcon: 'plus-box-outline' },
     { key: 'profile', title: 'Profile', focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
+    { key: 'tutorial', title: 'Tutorial', focusedIcon: 'help-circle', unfocusedIcon: 'help-circle-outline' }, // Adicionando o botão de tutorial
   ]);
 
   const renderScene = ({ route }: { route: Route }) => {
@@ -29,6 +31,8 @@ export default function BottomTabs() {
         return <AddTaskScreen />;
       case 'profile':
         return <ProfileScreen />;
+      case 'tutorial': // Renderiza a tela do tutorial
+        return <TutorialScreen />;
       default:
         return null;
     }
