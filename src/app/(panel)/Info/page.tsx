@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import RobotIntro from '@/src/componentes/roboTutorial';  // Ou 'SecondRobotIntro', dependendo de qual você está utilizando.
+import colors from '@/constants/colors';
 
 const TutorialScreen = () => {
   const [isTutorialVisible, setIsTutorialVisible] = useState(false);
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.background,
   },
   startButtonContainer: {
     alignItems: 'center',
@@ -46,9 +47,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: colors.ColorText
   },
   button: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.Ciano0,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
