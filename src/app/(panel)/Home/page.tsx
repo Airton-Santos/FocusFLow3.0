@@ -68,11 +68,12 @@ const TaskList = () => {
 
   // Função para calcular o progresso de cada tarefa com base nas subtarefas
   const calcularProgresso = (subtarefas?: { concluido: boolean }[], concluida?: boolean) => {
-    if (concluida) return 100;
-    if (!subtarefas || subtarefas.length === 0) return 0;
+    if (concluida) return 100; // Se a tarefa está concluída, progresso é 100%
+    if (!subtarefas || subtarefas.length === 0) return 0; // Sem subtarefas, progresso é 0
     const concluidos = subtarefas.filter((subtarefa) => subtarefa.concluido).length;
-    return (concluidos / subtarefas.length) * 100;
+    return Math.round((concluidos / subtarefas.length) * 100); // Calcula e arredonda para inteiro
 };
+
 
   // Carregar tarefas do Firestore filtrando pelo idUser do usuário
   const carregarTarefas = () => {
@@ -150,8 +151,9 @@ const TaskList = () => {
               </View>
 
               <Text style={styles.progresso}>
-                Progresso: {calcularProgresso(item.subtarefas).toFixed(2)}%
+                Progresso: {calcularProgresso(item.subtarefas, item.concluida)}%
               </Text>
+
 
               <TouchableOpacity
                 style={styles.button}

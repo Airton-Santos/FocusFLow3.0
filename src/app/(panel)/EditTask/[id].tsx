@@ -42,35 +42,45 @@ const TaskDetails = () => {
     carregarDetalhes();
   }, [id]);
 
-  const toggleSubtarefa = (index: number) => {
-    setSubtarefas((prevSubtarefas) => {
-      const novasSubtarefas = [...prevSubtarefas];
-      novasSubtarefas[index].concluida = !novasSubtarefas[index].concluida;
-      return novasSubtarefas;
-    });
+  const toggleSubtarefa = async (index: number) => {
+    const novasSubtarefas = [...subtarefas];
+    novasSubtarefas[index].concluido = !novasSubtarefas[index].concluido;
+    setSubtarefas(novasSubtarefas);
+  
+    try {
+      await updateDoc(doc(db, "Tarefas", id as string), {
+        subtarefas: novasSubtarefas
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar subtarefa:", error);
+    }
   };
+  
 
   const salvarProgresso = async () => {
     if (!id) return;
-
+  
     try {
-      const todasConcluidas = subtarefas.every((subtarefa) => subtarefa.concluida);
+      const todasConcluidas = subtarefas.every((subtarefa) => subtarefa.concluido === true);
+      
       await updateDoc(doc(db, "Tarefas", id as string), {
         subtarefas: subtarefas,
-        concluida: todasConcluidas, // Se todas as subtarefas forem concluídas, a tarefa será marcada como concluída.
+        concluido: todasConcluidas, // Atualiza o status geral da tarefa
       });
-
+  
+      // Atualiza o estado local da tarefa
       setTarefa((prevTarefa: any) => ({
         ...prevTarefa,
-        subtarefas: subtarefas,
-        concluida: todasConcluidas,
+        subtarefas: [...subtarefas], // Garante que o estado é atualizado
+        concluido: todasConcluidas,
       }));
-
+  
       alert(todasConcluidas ? "Tarefa concluída!" : "Progresso salvo!");
     } catch (error) {
       console.error("Erro ao salvar progresso: ", error);
     }
   };
+  
 
   if (loading) {
     return (
@@ -98,7 +108,7 @@ const TaskDetails = () => {
       </View>
 
       {/* Exibe o status da tarefa */}
-      <Text style={[styles.status, tarefa.concluida ? styles.statusConcluida : styles.statusNaoConcluida]}>
+      <Text style={[styles.status, tarefa.concluido ? styles.statusConcluida : styles.statusNaoConcluida]}>
         {tarefa.concluida ? "Tarefa Concluída" : "Tarefa Não Concluída"}
       </Text>
 
@@ -111,11 +121,11 @@ const TaskDetails = () => {
             <View style={styles.subtarefaRow}>
               {/* Ícone de círculo com "X" para subtarefas não concluídas */}
               <MaterialCommunityIcons
-                name={item.concluida ? 'check-circle' : 'circle-slice-8'}
+                name={item.concluido ? 'check-circle' : 'circle-slice-8'}
                 size={24}
-                color={item.concluida ? 'green' : 'red'}
+                color={item.concluido ? 'green' : 'red'}
               />
-              <Text style={[styles.subtarefaTexto, item.concluida && styles.subtarefaConcluida]}>
+              <Text style={[styles.subtarefaTexto, item.concluido && styles.subtarefaConcluida]}>
                 {item.nome}
               </Text>
             </View>
