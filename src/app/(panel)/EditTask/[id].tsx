@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, FlatList, TouchableOpacity, TextInput } from 'react-native';
 import { db } from '@/firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import colors from '@/constants/colors';
-import { MaterialIcons } from '@expo/vector-icons';
-import { MaterialCommunityIcons } from '@expo/vector-icons'; // Para o ícone do círculo com X
+import { MaterialIcons } from '@expo/vector-icons';  // Importa MaterialIcons
+// MaterialCommunityIcons foi removido, pois estamos usando MaterialIcons para o ícone de warning
 
 const TaskDetails = () => {
-  const { id } = useLocalSearchParams(); // Obtém o ID da URL
+  const { id } = useLocalSearchParams(); 
   const [tarefa, setTarefa] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [subtarefas, setSubtarefas] = useState<any[]>([]); // Alterado de 'topicos' para 'subtarefas'
+  const [subtarefas, setSubtarefas] = useState<any[]>([]); 
+  const [novaSubtarefa, setNovaSubtarefa] = useState(""); 
+  const [modoEdicao, setModoEdicao] = useState(false);
+  const [titulo, setTitulo] = useState(''); 
+  const [descricao, setDescricao] = useState(''); 
+  const [prioridade, setPrioridade] = useState(''); 
   const router = useRouter();
 
   const voltar = () => {
@@ -26,7 +31,10 @@ const TaskDetails = () => {
         if (docSnap.exists()) {
           const dados = docSnap.data();
           setTarefa(dados);
-          setSubtarefas(dados.subtarefas || []); // Carrega as subtarefas
+          setSubtarefas(dados.subtarefas || []); 
+          setTitulo(dados.titulo);
+          setDescricao(dados.description);
+          setPrioridade(dados.prioridade);
         } else {
           console.log("Tarefa não encontrada!");
         }
@@ -45,17 +53,16 @@ const TaskDetails = () => {
   const toggleSubtarefa = async (index: number) => {
     const novasSubtarefas = [...subtarefas];
     novasSubtarefas[index].concluido = !novasSubtarefas[index].concluido;
-    setSubtarefas(novasSubtarefas);
-  
+    setSubtarefas(novasSubtarefas);  
+    
     try {
       await updateDoc(doc(db, "Tarefas", id as string), {
-        subtarefas: novasSubtarefas
+        subtarefas: novasSubtarefas,
       });
     } catch (error) {
       console.error("Erro ao atualizar subtarefa:", error);
     }
   };
-  
 
   const salvarProgresso = async () => {
     if (!id) return;
@@ -65,13 +72,12 @@ const TaskDetails = () => {
       
       await updateDoc(doc(db, "Tarefas", id as string), {
         subtarefas: subtarefas,
-        concluido: todasConcluidas, // Atualiza o status geral da tarefa
+        concluido: todasConcluidas, 
       });
   
-      // Atualiza o estado local da tarefa
       setTarefa((prevTarefa: any) => ({
         ...prevTarefa,
-        subtarefas: [...subtarefas], // Garante que o estado é atualizado
+        subtarefas: [...subtarefas], 
         concluido: todasConcluidas,
       }));
   
@@ -80,7 +86,54 @@ const TaskDetails = () => {
       console.error("Erro ao salvar progresso: ", error);
     }
   };
-  
+
+  const adicionarSubtarefa = async () => {
+    if (!novaSubtarefa) return; 
+
+    const novasSubtarefas = [...subtarefas, { nome: novaSubtarefa, concluido: false }];
+    setSubtarefas(novasSubtarefas);
+    setNovaSubtarefa(""); 
+
+    try {
+      await updateDoc(doc(db, "Tarefas", id as string), {
+        subtarefas: novasSubtarefas
+      });
+    } catch (error) {
+      console.error("Erro ao adicionar subtarefa:", error);
+    }
+  };
+
+  const removerSubtarefa = async (index: number) => {
+    if (!modoEdicao) return; 
+    
+    const novasSubtarefas = subtarefas.filter((_, i) => i !== index); 
+    setSubtarefas(novasSubtarefas);
+
+    try {
+      await updateDoc(doc(db, "Tarefas", id as string), {
+        subtarefas: novasSubtarefas
+      });
+    } catch (error) {
+      console.error("Erro ao remover subtarefa:", error);
+    }
+  };
+
+  const salvarAlteracoes = async () => {
+    if (!id) return;
+
+    try {
+      await updateDoc(doc(db, "Tarefas", id as string), {
+        titulo: titulo,
+        description: descricao,
+        prioridade: prioridade,
+        subtarefas: subtarefas
+      });
+      setModoEdicao(false); 
+      alert("Alterações salvas!");
+    } catch (error) {
+      console.error("Erro ao salvar alterações:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -93,49 +146,102 @@ const TaskDetails = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Detalhes da Tarefa</Text>
-      <Text style={styles.taskTitle}>{tarefa.titulo}</Text>
-      <Text style={styles.taskDescription}>{tarefa.description}</Text>
-
-      {/* Exibe a prioridade da tarefa com ícones */}
-      <View style={styles.priorityContainer}>
-        <Text style={styles.taskPriority}>Prioridade:</Text>
-        <MaterialIcons
-          name={tarefa.prioridade === 'Alta' ? 'warning' : tarefa.prioridade === 'Média' ? 'warning' : 'warning'}
-          size={24}
-          color={tarefa.prioridade === 'Alta' ? 'red' : tarefa.prioridade === 'Média' ? colors.Amarelo01 : colors.AzulCinzentado}
-        />
+      <View style={styles.header}>
+        <Text style={styles.title}>Detalhes da Tarefa</Text>
+        <TouchableOpacity onPress={() => setModoEdicao(true)}>
+          <MaterialIcons name="edit" size={30} color="#FFF" />
+        </TouchableOpacity>
       </View>
 
-      {/* Exibe o status da tarefa */}
-      <Text style={[styles.status, tarefa.concluido ? styles.statusConcluida : styles.statusNaoConcluida]}>
-        {tarefa.concluida ? "Tarefa Concluída" : "Tarefa Não Concluída"}
-      </Text>
+      {modoEdicao ? (
+        <View>
+          <TextInput
+            style={styles.input}
+            value={titulo}
+            onChangeText={setTitulo}
+            placeholder="Alterar título"
+          />
+          <TextInput
+            style={styles.input}
+            value={descricao}
+            onChangeText={setDescricao}
+            placeholder="Alterar descrição"
+          />
+          <TextInput
+            style={styles.input}
+            value={prioridade}
+            onChangeText={setPrioridade}
+            placeholder="Alterar prioridade"
+          />
+        </View>
+      ) : (
+        <>
+          <Text style={styles.taskTitle}>{titulo}</Text>
+          <Text style={styles.taskDescription}>{descricao}</Text>
+          <Text style={styles.taskPriority}>
+            Prioridade: 
+            <MaterialIcons
+              name={
+                prioridade === 'alta' ? 'warning' :  // Ícone de alerta para alta prioridade
+                prioridade === 'media' ? 'warning' :  // Ícone de alerta para média prioridade
+                'warning'  // Ícone de alerta para baixa prioridade
+              }
+              size={24}
+              color={
+                prioridade === 'alta' ? 'red' :
+                prioridade === 'media' ? 'yellow' :
+                'green'
+              }
+            />
+          </Text>
+        </>
+      )}
 
       <Text style={styles.subtitle}>Subtarefas:</Text>
       <FlatList
         data={subtarefas}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item, index }) => (
-          <TouchableOpacity style={styles.subtarefaContainer} onPress={() => toggleSubtarefa(index)}>
-            <View style={styles.subtarefaRow}>
-              {/* Ícone de círculo com "X" para subtarefas não concluídas */}
-              <MaterialCommunityIcons
-                name={item.concluido ? 'check-circle' : 'circle-slice-8'}
+          <View style={styles.subtarefaContainer}>
+            <TouchableOpacity 
+              style={styles.subtarefaRow}
+              onPress={() => toggleSubtarefa(index)} 
+            >
+              <MaterialIcons
+                name={item.concluido ? 'check-circle' : 'radio-button-unchecked'}
                 size={24}
                 color={item.concluido ? 'green' : 'red'}
               />
               <Text style={[styles.subtarefaTexto, item.concluido && styles.subtarefaConcluida]}>
                 {item.nome}
               </Text>
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          </View>
         )}
       />
 
-      <TouchableOpacity style={styles.button} onPress={salvarProgresso}>
-        <Text style={styles.buttonText}>Salvar Progresso</Text>
-      </TouchableOpacity>
+      <View style={styles.addSubtarefaContainer}>
+        {modoEdicao && (
+          <>
+            <TextInput
+              style={styles.input}
+              placeholder="Adicionar nova subtarefa"
+              value={novaSubtarefa}
+              onChangeText={setNovaSubtarefa}
+            />
+            <TouchableOpacity onPress={adicionarSubtarefa} style={styles.addButton}>
+              <Text style={styles.addButtonText}>Adicionar</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+
+      {modoEdicao && (
+        <TouchableOpacity onPress={salvarAlteracoes} style={styles.button}>
+          <Text style={styles.buttonText}>Salvar Alterações</Text>
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity style={[styles.button, styles.buttonVoltar]} onPress={voltar}>
         <Text style={styles.buttonTextVoltar}>Voltar</Text>
       </TouchableOpacity>
@@ -148,47 +254,18 @@ export default TaskDetails;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.Ciano0,
+    backgroundColor: colors.Ciano1,
     padding: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
     color: '#FFF',
-  },
-  taskTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFF',
-  },
-  taskDescription: {
-    color: '#FFF',
-    fontSize: 16,
-    marginVertical: 5,
-  },
-  taskPriority: {
-    color: '#FFF',
-    fontSize: 20,
-    marginBottom: 10,
-    fontWeight: 'bold'
-  },
-  priorityContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  status: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginVertical: 10,
-  },
-  statusConcluida: {
-    color: 'green',
-  },
-  statusNaoConcluida: {
-    color: colors.LaranjaClaro,
   },
   subtitle: {
     fontSize: 18,
@@ -196,51 +273,86 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     color: '#FFF',
   },
-  subtarefaContainer: {
-    padding: 10,
-    backgroundColor: '#FFF',
-    borderRadius: 8,
-    marginVertical: 5,
+  input: {
+    height: 40,
+    borderColor: colors.AzulCinzentado,
+    borderWidth: 1,
+    marginVertical: 10,
+    paddingLeft: 8,
+    borderRadius: 5,
+    color: '#FFF',
   },
-  subtarefaTexto: {
-    fontSize: 16,
-    color: '#000',
+  taskTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFF',
   },
-  subtarefaConcluida: {
-    textDecorationLine: 'line-through',
-    color: 'gray',
-  },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: colors.Ciano0,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    color: colors.ColorText,
+  taskDescription: {
     fontSize: 18,
-    marginTop: 10,
+    color: '#FFF',
+    marginVertical: 10,
   },
-  button: {
-    backgroundColor: colors.AzulCinzentado,
-    padding: 10,
-    borderRadius: 8,
-    marginVertical: 5,
-    alignItems: 'center',
+  taskPriority: {
+    fontSize: 18,
+    color: '#FFF',
   },
-  buttonTextVoltar: {
-    color: colors.ColorText,
-    fontSize: 16,
-  },
-  buttonText: {
-    color: colors.Preto0,
-    fontSize: 16,
-  },
-  buttonVoltar: {
-    backgroundColor: 'red',
+  subtarefaContainer: {
+    marginBottom: 10,
   },
   subtarefaRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+  subtarefaTexto: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: '#FFF',
+  },
+  subtarefaConcluida: {
+    textDecorationLine: 'line-through',
+    color: 'green',
+  },
+  addSubtarefaContainer: {
+    marginVertical: 10,
+  },
+  addButton: {
+    backgroundColor: colors.AzulCinzentado,
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  addButtonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  button: {
+    backgroundColor: colors.Ciano1,
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 10,
+  },
+  buttonText: {
+    color: '#FFF',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  buttonVoltar: {
+    backgroundColor: 'red',
+  },
+  buttonTextVoltar: {
+    color: '#FFF',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#FFF',
+  },
 });
+
