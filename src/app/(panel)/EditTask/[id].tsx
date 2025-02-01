@@ -5,7 +5,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import colors from '@/constants/colors';
 import { MaterialIcons } from '@expo/vector-icons';  // Importa MaterialIcons
-// MaterialCommunityIcons foi removido, pois estamos usando MaterialIcons para o ícone de warning
+import { Picker } from '@react-native-picker/picker';
 
 const TaskDetails = () => {
   const { id } = useLocalSearchParams(); 
@@ -64,29 +64,6 @@ const TaskDetails = () => {
     }
   };
 
-  const salvarProgresso = async () => {
-    if (!id) return;
-  
-    try {
-      const todasConcluidas = subtarefas.every((subtarefa) => subtarefa.concluido === true);
-      
-      await updateDoc(doc(db, "Tarefas", id as string), {
-        subtarefas: subtarefas,
-        concluido: todasConcluidas, 
-      });
-  
-      setTarefa((prevTarefa: any) => ({
-        ...prevTarefa,
-        subtarefas: [...subtarefas], 
-        concluido: todasConcluidas,
-      }));
-  
-      alert(todasConcluidas ? "Tarefa concluída!" : "Progresso salvo!");
-    } catch (error) {
-      console.error("Erro ao salvar progresso: ", error);
-    }
-  };
-
   const adicionarSubtarefa = async () => {
     if (!novaSubtarefa) return; 
 
@@ -120,21 +97,24 @@ const TaskDetails = () => {
 
   const salvarAlteracoes = async () => {
     if (!id) return;
-
+  
     try {
       await updateDoc(doc(db, "Tarefas", id as string), {
         titulo: titulo,
         description: descricao,
-        prioridade: prioridade,
-        subtarefas: subtarefas
+        prioridade: prioridade, // Agora a prioridade será salva no banco
+        subtarefas: subtarefas,
       });
-      setModoEdicao(false); 
+      setModoEdicao(false);
       alert("Alterações salvas!");
+  
+      // Redirecionar para a tela de tarefas após salvar
+      router.push('/(panel)/GeneralScreen/page');
     } catch (error) {
       console.error("Erro ao salvar alterações:", error);
     }
   };
-
+  
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -167,12 +147,18 @@ const TaskDetails = () => {
             onChangeText={setDescricao}
             placeholder="Alterar descrição"
           />
-          <TextInput
-            style={styles.input}
-            value={prioridade}
-            onChangeText={setPrioridade}
-            placeholder="Alterar prioridade"
-          />
+          {/* Picker para alterar a prioridade */}
+          <Text style={styles.inputLabel}>Prioridade:</Text>
+          <Picker
+            selectedValue={prioridade}
+            onValueChange={(itemValue) => setPrioridade(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="Baixa" value="baixa" />
+            <Picker.Item label="Média" value="media" />
+            <Picker.Item label="Alta" value="alta" />
+          </Picker>
+
         </View>
       ) : (
         <>
@@ -226,6 +212,7 @@ const TaskDetails = () => {
             <TextInput
               style={styles.input}
               placeholder="Adicionar nova subtarefa"
+              placeholderTextColor={colors.ColorText}
               value={novaSubtarefa}
               onChangeText={setNovaSubtarefa}
             />
@@ -254,7 +241,7 @@ export default TaskDetails;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.Ciano1,
+    backgroundColor: colors.background,
     padding: 20,
   },
   header: {
@@ -265,13 +252,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: colors.ColorText
   },
   subtitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#FFF',
+    marginBottom: 30,
+    color: colors.ColorText
   },
   input: {
     height: 40,
@@ -280,12 +267,14 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     paddingLeft: 8,
     borderRadius: 5,
-    color: '#FFF',
+    color: colors.ColorText
   },
   taskTitle: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#FFF',
+    marginTop: 15,
+    marginBottom: 5,
   },
   taskDescription: {
     fontSize: 18,
@@ -294,6 +283,7 @@ const styles = StyleSheet.create({
   },
   taskPriority: {
     fontSize: 18,
+    marginBottom: 15,
     color: '#FFF',
   },
   subtarefaContainer: {
@@ -338,7 +328,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   buttonVoltar: {
-    backgroundColor: 'red',
+    backgroundColor: colors.LaranjaClaro,
   },
   buttonTextVoltar: {
     color: '#FFF',
@@ -353,6 +343,20 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     color: '#FFF',
+  },
+   picker: {
+    height: 50,
+    borderColor: colors.AzulCinzentado,
+    borderWidth: 1,
+    backgroundColor: colors.Ciano0,
+    marginVertical: 20,
+    borderRadius: 5,
+    color: colors.ColorText,
+  },
+  inputLabel: {
+    color: '#FFF',
+    fontSize: 16,
+    marginBottom: 5,
   },
 });
 

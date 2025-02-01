@@ -5,28 +5,19 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { auth } from '@/firebaseConfig';
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
-import { MaterialIcons } from '@expo/vector-icons';  // Ícones para usarmos
+import { MaterialIcons } from '@expo/vector-icons';
 import colors from '@/constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RobotIntro from '@/src/componentes/roboIntro';
 
-
 const TaskList = () => {
-  const [tarefas, setTarefas] = useState<any[]>([]); // Tipo de tarefas
+  const [tarefas, setTarefas] = useState<any[]>([]); 
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const user = auth.currentUser; // Obter o usuário atual
+  const user = auth.currentUser;
   const [showIntro, setShowIntro] = useState(false);
 
-  // useEffect(() => {
-  //   const resetIntro = async () => {
-  //     await AsyncStorage.removeItem('hasSeenIntro'); // Apaga o dado salvo
-  //     console.log("AsyncStorage resetado! O robô de introdução deve aparecer novamente.");
-  //   };
-  //   resetIntro();
-  // }, []);
-  
-
+  // Função de verificação do primeiro uso
   useEffect(() => {
     const checkFirstTime = async () => {
       const hasSeenIntro = await AsyncStorage.getItem('hasSeenIntro');
@@ -42,14 +33,13 @@ const TaskList = () => {
     setShowIntro(false);
   };
 
+  // Função para verificação de e-mail
   const checkEmailVerification = () => {
     if (user && !user.emailVerified) {
       Alert.alert(
         "Verifique seu e-mail",
         "Seu e-mail ainda não foi verificado. Por favor, verifique sua caixa de entrada para confirmar seu e-mail.",
-        [
-          { text: "Ok" }
-        ]
+        [{ text: "Ok" }]
       );
       verifyOff();
     }
@@ -58,24 +48,23 @@ const TaskList = () => {
   const verifyOff = async () => {
     try {
       await signOut(auth);
-      router.replace('/(auth)/mainPage/page'); // Redireciona para a tela principal após deslogar
+      router.replace('/(auth)/mainPage/page'); 
       console.log('Deslogado com sucesso');
     } catch (error) {
       Alert.alert("Erro", "Ocorreu um erro ao tentar sair.");
-      console.error('Erro ao tentar deslogar:', error); // Loga o erro para depuração
+      console.error('Erro ao tentar deslogar:', error);
     }
   };
 
-  // Função para calcular o progresso de cada tarefa com base nas subtarefas
+  // Função para calcular o progresso
   const calcularProgresso = (subtarefas?: { concluido: boolean }[], concluida?: boolean) => {
-    if (concluida) return 100; // Se a tarefa está concluída, progresso é 100%
-    if (!subtarefas || subtarefas.length === 0) return 0; // Sem subtarefas, progresso é 0
+    if (concluida) return 100; 
+    if (!subtarefas || subtarefas.length === 0) return 0; 
     const concluidos = subtarefas.filter((subtarefa) => subtarefa.concluido).length;
-    return Math.round((concluidos / subtarefas.length) * 100); // Calcula e arredonda para inteiro
-};
+    return Math.round((concluidos / subtarefas.length) * 100); 
+  };
 
-
-  // Carregar tarefas do Firestore filtrando pelo idUser do usuário
+  // Carregar tarefas do Firestore
   const carregarTarefas = () => {
     setLoading(true);
     if (user) {
@@ -87,14 +76,13 @@ const TaskList = () => {
         querySnapshot.forEach((doc) => {
           tarefasData.push({ ...doc.data(), id: doc.id });
         });
-        setTarefas(tarefasData);  // Atualiza a lista de tarefas
-        setLoading(false);  // Pode definir o loading como false depois de receber os dados
+        setTarefas(tarefasData);  
+        setLoading(false); 
       }, (error) => {
         console.error("Erro ao ouvir as tarefas: ", error);
         setLoading(false);
       });
 
-      // Retorne a função de desinscrição quando o componente for desmontado
       return () => unsubscribe();
     }
   };
@@ -102,15 +90,14 @@ const TaskList = () => {
   // Carregar tarefas ao montar o componente
   useEffect(() => {
     checkEmailVerification();
-    carregarTarefas();  // Inicia a escuta das tarefas em tempo real
-    return () => {  // Cancela a escuta quando o componente for desmontado
-      setLoading(false);  // Pode resetar o estado de loading aqui, caso necessário
+    carregarTarefas();  
+    return () => {
+      setLoading(false);  
     };
   }, []);
 
   return (
     <View style={styles.container}>
-
       <Modal visible={showIntro} transparent animationType="fade">
         <View style={styles.modalBackground}>
           <RobotIntro onStart={handleIntroDismiss} />
@@ -130,15 +117,14 @@ const TaskList = () => {
               <View style={styles.header}>
                 <Text style={styles.taskTitle}>{item.titulo}</Text>
                 <MaterialIcons 
-                  name={item.prioridade === 'Alta' ? 'warning' : item.prioridade === 'Média' ? 'warning' : 'warning'}
+                  name={item.prioridade === 'alta' ? 'warning' : item.prioridade === 'media' ? 'warning' : 'warning'}
                   size={24} 
-                  color={item.prioridade === 'Alta' ? 'red' : item.prioridade === 'Média' ? colors.Amarelo01 : colors.AzulCinzentado}
+                  color={item.prioridade === 'alta' ? 'red' : item.prioridade === 'media' ? colors.Amarelo01 : colors.AzulCinzentado}
                 />
               </View>
 
               <Text style={styles.taskDescription}>{item.description}</Text>
 
-              {/* Ícone para o status da tarefa */}
               <View style={styles.statusContainer}>
                 <MaterialIcons
                   name={item.concluida ? 'check-circle' : 'cancel'}
@@ -153,7 +139,6 @@ const TaskList = () => {
               <Text style={styles.progresso}>
                 Progresso: {calcularProgresso(item.subtarefas, item.concluida)}%
               </Text>
-
 
               <TouchableOpacity
                 style={styles.button}
@@ -242,7 +227,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
   },
-
   modalBackground: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
