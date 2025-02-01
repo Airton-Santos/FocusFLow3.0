@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import RobotIntro from '@/src/componentes/roboTutorial';  // Ou 'SecondRobotIntro', dependendo de qual você está utilizando.
 import colors from '@/constants/colors';
+import { Button } from 'react-native-paper';
 
 // Tipagem das props que o componente TutorialScreen recebe
 interface TutorialScreenProps {
@@ -40,14 +41,15 @@ const TutorialScreen: React.FC<TutorialScreenProps> = ({ onTutorialStart, onTuto
           </TouchableOpacity>
         </View>
       ) : (
-        <View style={styles.tutorialContainer}>
-          <RobotIntro onStart={handleTutorialComplete} /> {/* Exibindo o robô */}
+        <>
+          {/* Exibindo o robô e o botão de pular tutorial */}
+          <RobotIntro onStart={handleTutorialComplete} />
           
-          {/* Botão de Pular */}
+          {/* Botão de Pular Tutorial - visível apenas se o tutorial estiver ativo */}
           <TouchableOpacity style={styles.skipButton} onPress={skipTutorial}>
             <Text style={styles.skipButtonText}>Pular Tutorial</Text>
           </TouchableOpacity>
-        </View>
+        </>
       )}
     </View>
   );
@@ -67,7 +69,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: colors.ColorText,
+    color: colors.ColorText
   },
   button: {
     backgroundColor: colors.Ciano0,
@@ -78,10 +80,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontWeight: 'bold',
-  },
-  tutorialContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   skipButton: {
     backgroundColor: colors.Ciano0,
