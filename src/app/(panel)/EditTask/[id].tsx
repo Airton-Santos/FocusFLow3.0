@@ -4,7 +4,7 @@ import { db } from '@/firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import colors from '@/constants/colors';
-import { MaterialIcons } from '@expo/vector-icons';  // Importa MaterialIcons
+import { MaterialIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 
 const TaskDetails = () => {
@@ -80,21 +80,6 @@ const TaskDetails = () => {
     }
   };
 
-  const removerSubtarefa = async (index: number) => {
-    if (!modoEdicao) return; 
-    
-    const novasSubtarefas = subtarefas.filter((_, i) => i !== index); 
-    setSubtarefas(novasSubtarefas);
-
-    try {
-      await updateDoc(doc(db, "Tarefas", id as string), {
-        subtarefas: novasSubtarefas
-      });
-    } catch (error) {
-      console.error("Erro ao remover subtarefa:", error);
-    }
-  };
-
   const salvarAlteracoes = async () => {
     if (!id) return;
   
@@ -102,13 +87,12 @@ const TaskDetails = () => {
       await updateDoc(doc(db, "Tarefas", id as string), {
         titulo: titulo,
         description: descricao,
-        prioridade: prioridade, // Agora a prioridade será salva no banco
+        prioridade: prioridade, 
         subtarefas: subtarefas,
       });
       setModoEdicao(false);
       alert("Alterações salvas!");
   
-      // Redirecionar para a tela de tarefas após salvar
       router.push('/(panel)/GeneralScreen/page');
     } catch (error) {
       console.error("Erro ao salvar alterações:", error);
@@ -158,28 +142,42 @@ const TaskDetails = () => {
             <Picker.Item label="Média" value="media" />
             <Picker.Item label="Alta" value="alta" />
           </Picker>
-
         </View>
       ) : (
         <>
-          <Text style={styles.taskTitle}>{titulo}</Text>
-          <Text style={styles.taskDescription}>{descricao}</Text>
-          <Text style={styles.taskPriority}>
-            Prioridade: 
-            <MaterialIcons
-              name={
-                prioridade === 'alta' ? 'warning' :  // Ícone de alerta para alta prioridade
-                prioridade === 'media' ? 'warning' :  // Ícone de alerta para média prioridade
-                'warning'  // Ícone de alerta para baixa prioridade
-              }
-              size={24}
-              color={
-                prioridade === 'alta' ? 'red' :
-                prioridade === 'media' ? 'yellow' :
-                'green'
-              }
-            />
-          </Text>
+          <View style={styles.divider} />
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Título</Text>
+            <Text style={styles.taskTitle}>{titulo}</Text>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Descrição</Text>
+            <Text style={styles.taskDescription}>{descricao}</Text>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.section}>
+            <View style={styles.priorityContainer}>
+            <Text style={styles.TextPriority}>Prioridade:</Text>
+              <MaterialIcons
+                name={
+                  prioridade === 'alta' ? 'warning' :  // Ícone de alerta para alta prioridade
+                  prioridade === 'media' ? 'warning' :  // Ícone de alerta para média prioridade
+                  'warning'  // Ícone de alerta para baixa prioridade
+                }
+                size={24}
+                color={
+                  prioridade === 'alta' ? 'red' :
+                  prioridade === 'media' ? 'yellow' :
+                  'green'
+                }
+              />
+            </View>
+          </View>
         </>
       )}
 
@@ -283,57 +281,92 @@ const styles = StyleSheet.create({
   },
   taskPriority: {
     fontSize: 18,
-    marginBottom: 15,
     color: '#FFF',
+    marginVertical: 10,
+  },
+  priorityContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Isso separa os itens
+    alignItems: 'center',  // Alinha o texto e o ícone verticalmente
+    width: '100%',  // Faz com que ocupe toda a largura disponível
+    height: 70
+  },
+  TextPriority: {
+     color: colors.ColorText,
+     fontSize: 20,
+     marginBottom: 10
   },
   subtarefaContainer: {
-    marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
   },
   subtarefaRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   subtarefaTexto: {
-    marginLeft: 10,
     fontSize: 16,
-    color: '#FFF',
+    color: colors.ColorText,
+    marginLeft: 10,
   },
   subtarefaConcluida: {
     textDecorationLine: 'line-through',
-    color: 'green',
   },
-  addSubtarefaContainer: {
+  section: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFF',
+  },
+  divider: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#DDD',
     marginVertical: 10,
   },
+  addSubtarefaContainer: {
+    marginBottom: 20,
+  },
   addButton: {
-    backgroundColor: colors.AzulCinzentado,
+    backgroundColor: colors.ColorText,
     padding: 10,
     borderRadius: 5,
-    marginTop: 10,
+    alignItems: 'center',
   },
   addButtonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontSize: 16,
+    color: colors.Preto0,
   },
   button: {
     backgroundColor: colors.Ciano1,
-    padding: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 5,
     marginVertical: 10,
+    alignItems: 'center',
   },
   buttonText: {
-    color: '#FFF',
-    textAlign: 'center',
     fontSize: 16,
+    color: '#FFF',
   },
   buttonVoltar: {
     backgroundColor: colors.LaranjaClaro,
   },
   buttonTextVoltar: {
-    color: '#FFF',
-    textAlign: 'center',
     fontSize: 16,
+    color: '#FFF',
+  },
+  picker: {
+    height: 70,
+    color: colors.ColorText,
+  },
+  inputLabel: {
+    color: colors.ColorText,
+    fontSize: 16,
+    marginTop: 10,
   },
   loadingContainer: {
     flex: 1,
@@ -344,19 +377,4 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: '#FFF',
   },
-   picker: {
-    height: 50,
-    borderColor: colors.AzulCinzentado,
-    borderWidth: 1,
-    backgroundColor: colors.Ciano0,
-    marginVertical: 20,
-    borderRadius: 5,
-    color: colors.ColorText,
-  },
-  inputLabel: {
-    color: '#FFF',
-    fontSize: 16,
-    marginBottom: 5,
-  },
 });
-
