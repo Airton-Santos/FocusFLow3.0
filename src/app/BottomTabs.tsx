@@ -3,7 +3,7 @@ import { BottomNavigation } from 'react-native-paper';
 import HomeScreen from '@/src/app/(panel)/Home/page';
 import AddTaskScreen from '@/src/app/(panel)/AddTasks/page';
 import ProfileScreen from '@/src/app/(panel)/profile/page';
-import TutorialScreen from '@/src/app/(panel)/Info/page'; // Importando a tela do tutorial
+import TutorialScreen from '@/src/app/(panel)/Info/page';
 import { StyleSheet } from 'react-native';
 import colors from '@/constants/colors';
 
@@ -15,12 +15,14 @@ type Route = {
 };
 
 export default function BottomTabs() {
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState<number>(0);
+  const [isTutorialActive, setIsTutorialActive] = useState<boolean>(false);
+
   const [routes] = useState<Route[]>([
     { key: 'home', title: 'Home', focusedIcon: 'home', unfocusedIcon: 'home-outline' },
     { key: 'addTask', title: 'Add', focusedIcon: 'plus-box', unfocusedIcon: 'plus-box-outline' },
     { key: 'profile', title: 'Profile', focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
-    { key: 'tutorial', title: 'Tutorial', focusedIcon: 'help-circle', unfocusedIcon: 'help-circle-outline' }, // Adicionando o botão de tutorial
+    { key: 'tutorial', title: 'Tutorial', focusedIcon: 'help-circle', unfocusedIcon: 'help-circle-outline' },
   ]);
 
   const renderScene = ({ route }: { route: Route }) => {
@@ -31,8 +33,8 @@ export default function BottomTabs() {
         return <AddTaskScreen />;
       case 'profile':
         return <ProfileScreen />;
-      case 'tutorial': // Renderiza a tela do tutorial
-        return <TutorialScreen />;
+      case 'tutorial':
+        return <TutorialScreen onTutorialStart={() => setIsTutorialActive(true)} onTutorialEnd={() => setIsTutorialActive(false)} />;
       default:
         return null;
     }
@@ -41,12 +43,16 @@ export default function BottomTabs() {
   return (
     <BottomNavigation
       navigationState={{ index, routes }}
-      onIndexChange={setIndex}
+      onIndexChange={(newIndex: number) => {
+        if (!isTutorialActive) {
+          setIndex(newIndex);
+        }
+      }}
       renderScene={renderScene}
-      shifting={true} // Ativa animações de transição
-      barStyle={styles.barStyle} // Aplica os estilos personalizados
-      activeColor={colors.Preto0} // Cor do ícone/texto quando ativo
-      inactiveColor={colors.ColorText} // Cor do ícone/texto quando inativo
+      shifting={true}
+      barStyle={styles.barStyle}
+      activeColor={colors.Preto0}
+      inactiveColor={colors.ColorText}
     />
   );
 }
@@ -54,11 +60,11 @@ export default function BottomTabs() {
 const styles = StyleSheet.create({
   barStyle: {
     backgroundColor: colors.Ciano0,
-    height: 80, // Altura maior para facilitar o toque
-    borderTopLeftRadius: 20, // Arredondamento das bordas superiores
+    height: 80,
+    borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingBottom: 10, // Ajusta espaço interno
-    elevation: 20, // Adiciona sombra no Android
+    paddingBottom: 10,
+    elevation: 20,
     shadowOpacity: 0.2,
     shadowRadius: 5,
     shadowOffset: { width: 0, height: -3 },

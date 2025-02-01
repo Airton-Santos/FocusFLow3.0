@@ -1,20 +1,33 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import RobotIntro from '@/src/componentes/roboTutorial';  // Ou 'SecondRobotIntro', dependendo de qual você está utilizando.
 import colors from '@/constants/colors';
 
-const TutorialScreen = () => {
+// Tipagem das props que o componente TutorialScreen recebe
+interface TutorialScreenProps {
+  onTutorialStart: () => void;
+  onTutorialEnd: () => void;
+}
+
+const TutorialScreen: React.FC<TutorialScreenProps> = ({ onTutorialStart, onTutorialEnd }) => {
   const [isTutorialVisible, setIsTutorialVisible] = useState(false);
 
-  // Função para começar o tutorial
+  // Iniciar o tutorial
   const startTutorial = () => {
     setIsTutorialVisible(true);
+    onTutorialStart();  // Chama a função passada pela prop
   };
 
-  // Função para finalizar o tutorial e começar o uso do app
+  // Finalizar o tutorial
   const handleTutorialComplete = () => {
     setIsTutorialVisible(false);
-    // Aqui você pode redirecionar para a próxima tela ou funcionalidade do app.
+    onTutorialEnd();  // Chama a função passada pela prop
+  };
+
+  // Pular o tutorial
+  const skipTutorial = () => {
+    setIsTutorialVisible(false);
+    onTutorialEnd();  // Finaliza o tutorial e chama a função passada pela prop
   };
 
   return (
@@ -27,7 +40,14 @@ const TutorialScreen = () => {
           </TouchableOpacity>
         </View>
       ) : (
-        <RobotIntro onStart={handleTutorialComplete} /> // Exibindo o robô
+        <View style={styles.tutorialContainer}>
+          <RobotIntro onStart={handleTutorialComplete} /> {/* Exibindo o robô */}
+          
+          {/* Botão de Pular */}
+          <TouchableOpacity style={styles.skipButton} onPress={skipTutorial}>
+            <Text style={styles.skipButtonText}>Pular Tutorial</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );
@@ -47,7 +67,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: colors.ColorText
+    color: colors.ColorText,
   },
   button: {
     backgroundColor: colors.Ciano0,
@@ -56,6 +76,22 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  tutorialContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  skipButton: {
+    backgroundColor: colors.Ciano0,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginTop: 20,
+    marginBottom: 20
+  },
+  skipButtonText: {
     color: 'white',
     fontWeight: 'bold',
   },
