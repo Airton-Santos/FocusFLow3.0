@@ -96,13 +96,10 @@ const Entrar = () => {
             onChangeText={setSenha}
             onFocus={() => setIsSenhaFocused(true)}
             onBlur={() => setIsSenhaFocused(false)}
-          />
-          <MaterialCommunityIcons
-            name={mostrarSenha ? 'eye' : 'eye-off'}
-            size={24}
-            color="#fff"
-            onPress={() => setMostrarSenha(!mostrarSenha)}
-            style={styles.eyeIcon}
+            right={<TextInput.Icon 
+              icon={mostrarSenha ? "eye-off" : "eye"} 
+              onPress={() => setMostrarSenha(!mostrarSenha)}
+            />}
           />
         </View>
 
@@ -206,13 +203,5 @@ const styles = StyleSheet.create({
 
   senhaContainer: {
     position: 'relative',
-  },
-
-  eyeIcon: {
-    position: 'absolute',
-    right: 10,
-    top: '50%',
-    transform: [{ translateY: -12 }],
-    marginRight: 10,
   },
 });

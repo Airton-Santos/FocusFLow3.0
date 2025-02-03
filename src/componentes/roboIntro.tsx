@@ -13,7 +13,7 @@ const RobotIntro: React.FC<RobotIntroProps> = ({ onStart }) => {
       {/* Balão de Fala */}
       <View style={styles.speechBubble}>
         <Text style={styles.speechText}>
-          Bem-vindo ao Focus Flow!{"\n"}Gostaria de começar suas tarefas diárias?
+          Bem-vindo ao Focus Flow!{"\n"}Gostaria de começar suas tarefas diárias?{"\n"}Vamos para tela do tutoria para você aprender como as coisas funciona por aqui.
         </Text>
         <TouchableOpacity style={styles.button} onPress={onStart}>
           <Text style={styles.buttonText}>OK</Text>

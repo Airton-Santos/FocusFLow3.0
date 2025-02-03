@@ -1,25 +1,31 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, Alert } from 'react-native';
 import { getAuth, signOut, updateProfile, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword } from 'firebase/auth';
 import { Button } from 'react-native-paper';
 import md5 from 'md5';
 import colors from '@/constants/colors';
+import { TextInput } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 
 const ProfileScreen = () => {
   const auth = getAuth();
   const user = auth.currentUser;
   const router = useRouter();
+  const [mostrarSenha, setMostrarSenha] = useState(false);
 
   const [name, setName] = useState<string>(user?.displayName || '');
   const [newEmail, setNewEmail] = useState<string>('');
-  const [currentPassword, setCurrentPassword] = useState<string>(''); // Não necessário para atualizar a senha
   const [newPassword, setNewPassword] = useState<string>('');
 
   const generateGravatarUrl = (email: string | null): string => {
     if (!email) return 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=identicon';
     const hash = md5(email.trim().toLowerCase());
     return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
+  };
+
+  const validarSenha = (senha: string) => {  // Garantir que a senha tenha 1 letra maiscula uma minuscula, números e caracter especial
+    const requisitos = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]{6,}$/;
+    return requisitos.test(senha);
   };
 
   const handleUpdateName = async () => {
@@ -60,6 +66,11 @@ const ProfileScreen = () => {
       Alert.alert('Erro', 'Por favor, preencha a nova senha.');
       return;
     }
+    if (!validarSenha(newPassword)) {
+          Alert.alert("A senha deve ter no mínimo 6 caracteres, uma letra maiúscula, uma minúscula, um número e um caractere especial.")
+      return;
+    }
+
     try {
       // Apenas se o usuário estiver autenticado, podemos chamar updatePassword diretamente
       await updatePassword(user, newPassword);
@@ -96,7 +107,11 @@ const ProfileScreen = () => {
         value={newPassword} 
         onChangeText={setNewPassword} 
         placeholder="Sua nova senha" 
-        secureTextEntry 
+        secureTextEntry={!mostrarSenha}
+        right={<TextInput.Icon 
+          icon={mostrarSenha ? "eye-off" : "eye"} 
+          onPress={() => setMostrarSenha(!mostrarSenha)}
+        />} 
       />
       <Button onPress={handleUpdatePassword} style={styles.btn} labelStyle={styles.btnText} contentStyle={styles.btnTamanho} mode="contained">
         Atualizar Senha

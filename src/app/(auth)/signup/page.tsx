@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, Image } from 'react-native';
 import { Button, TextInput } from 'react-native-paper';
 import { useRouter } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth } from '@/firebaseConfig';  // Certifique-se de que o caminho está correto
 import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app'; // Importando o tipo FirebaseError
@@ -125,13 +124,10 @@ const Profile = () => {
             onChangeText={setSenha}
             onFocus={() => setIsSenhaFocused(true)}
             onBlur={() => setIsSenhaFocused(false)}
-          />
-          <MaterialCommunityIcons
-            name={mostrarSenha ? 'eye' : 'eye-off'}
-            size={24}
-            color="#fff"
-            onPress={() => setMostrarSenha(!mostrarSenha)}
-            style={styles.eyeIcon}
+            right={<TextInput.Icon 
+              icon={mostrarSenha ? "eye-off" : "eye"} 
+              onPress={() => setMostrarSenha(!mostrarSenha)}
+            />}
           />
         </View>
 
@@ -196,13 +192,6 @@ const styles = StyleSheet.create({
   },
   senhaContainer: {
     position: 'relative',
-  },
-  eyeIcon: {
-    position: 'absolute',
-    right: 10,
-    top: '50%',
-    transform: [{ translateY: -12 }],
-    marginRight: 10,
   },
   btnCadastrarSe: {
     margin: 5,
