@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "FocusFlow3.0",
-    "slug": "FocusFlow3.0",
+    "name": "FocusFlowV3",
+    "slug": "FocusFlowV3",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "focusflow",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -20,7 +20,34 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "focusflow"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        },
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "focusflow"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ],
+      "package": "com.airtonj.FocusFlowV3"
     },
     "web": {
       "bundler": "metro",
@@ -32,6 +59,20 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "6ea9638a-a713-4db3-ad74-115bbac901ac"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/6ea9638a-a713-4db3-ad74-115bbac901ac"
     }
   }
 }

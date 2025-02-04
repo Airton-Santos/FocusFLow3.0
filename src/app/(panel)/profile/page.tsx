@@ -116,7 +116,6 @@ const ProfileScreen = () => {
       <Button onPress={handleUpdatePassword} style={styles.btn} labelStyle={styles.btnText} contentStyle={styles.btnTamanho} mode="contained">
         Atualizar Senha
       </Button>
-
       <Button onPress={deslogar} style={styles.btnDeslogar} labelStyle={styles.btnText} contentStyle={styles.btnTamanho} mode="contained">
         Deslogar
       </Button>
