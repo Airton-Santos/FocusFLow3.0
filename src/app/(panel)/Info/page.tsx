@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import RobotIntro from '@/src/componentes/roboTutorial';  // Ou 'SecondRobotIntro', dependendo de qual você está utilizando.
 import colors from '@/constants/colors';
 import { Button } from 'react-native-paper';
+import { sendInstantNotification } from "@/src/componentes/chamarnotificar";
 
 // Tipagem das props que o componente TutorialScreen recebe
 interface TutorialScreenProps {
@@ -29,6 +30,7 @@ const TutorialScreen: React.FC<TutorialScreenProps> = ({ onTutorialStart, onTuto
   const skipTutorial = () => {
     setIsTutorialVisible(false);
     onTutorialEnd();  // Finaliza o tutorial e chama a função passada pela prop
+    sendInstantNotification();
   };
 
   return (

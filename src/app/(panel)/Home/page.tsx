@@ -10,12 +10,14 @@ import colors from '@/constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RobotIntro from '@/src/componentes/roboIntro';
 
+
 const TaskList = () => {
   const [tarefas, setTarefas] = useState<any[]>([]); 
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const user = auth.currentUser;
   const [showIntro, setShowIntro] = useState(false);
+
 
   // Função de verificação do primeiro uso
   useEffect(() => {

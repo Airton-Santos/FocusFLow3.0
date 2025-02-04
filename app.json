@@ -13,6 +13,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+
     "ios": {
       "supportsTablet": true
     },
@@ -33,20 +34,9 @@
             "BROWSABLE",
             "DEFAULT"
           ]
-        },
-        {
-          "action": "VIEW",
-          "data": [
-            {
-              "scheme": "focusflow"
-            }
-          ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
         }
       ],
+
       "package": "com.airtonj.FocusFlowV3"
     },
     "web": {
@@ -55,7 +45,22 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "The app needs to access your calendar."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#ffffff",
+          "defaultChannel": "default",
+          "enableBackgroundRemoteNotifications": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -68,11 +73,11 @@
         "projectId": "6ea9638a-a713-4db3-ad74-115bbac901ac"
       }
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
+    
     "updates": {
-      "url": "https://u.expo.dev/6ea9638a-a713-4db3-ad74-115bbac901ac"
+      "url": "https://u.expo.dev/6ea9638a-a713-4db3-ad74-115bbac901ac",
+      "fallbackToCacheTimeout": 0
     }
   }
 }
