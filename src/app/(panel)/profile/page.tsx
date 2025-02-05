@@ -7,6 +7,7 @@ import colors from '@/constants/colors';
 import { TextInput } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 
+
 const ProfileScreen = () => {
   const auth = getAuth();
   const user = auth.currentUser;

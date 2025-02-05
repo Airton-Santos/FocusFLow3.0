@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import RobotIntro from '@/src/componentes/roboTutorial';  // Ou 'SecondRobotIntro', dependendo de qual você está utilizando.
 import colors from '@/constants/colors';
-
 
 // Tipagem das props que o componente TutorialScreen recebe
 interface TutorialScreenProps {
@@ -13,8 +12,6 @@ interface TutorialScreenProps {
 const TutorialScreen: React.FC<TutorialScreenProps> = ({ onTutorialStart, onTutorialEnd }) => {
   const [isTutorialVisible, setIsTutorialVisible] = useState(false);
 
-
-  
   // Iniciar o tutorial
   const startTutorial = () => {
     setIsTutorialVisible(true);

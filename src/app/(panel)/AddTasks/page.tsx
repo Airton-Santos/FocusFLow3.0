@@ -4,6 +4,18 @@ import { Button } from 'react-native-paper';
 import { auth, db } from '@/firebaseConfig';
 import { addDoc, collection } from 'firebase/firestore';
 import { Picker } from '@react-native-picker/picker';
+import { showNotification } from '@/src/componentes/chamarnotificar';
+import * as Notifications from 'expo-notifications';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: true,
+  }),
+});
+
+
 
 interface Subtarefa {
   nome: string;
@@ -71,6 +83,7 @@ const AddTask = () => {
       setNovaSubtarefa('');
       setSubtarefas([]);
       setMensagemSucesso("Tarefa adicionada com sucesso!");
+      showNotification();
     } catch (error) {
       console.error("Erro ao adicionar tarefa: ");
     } finally {

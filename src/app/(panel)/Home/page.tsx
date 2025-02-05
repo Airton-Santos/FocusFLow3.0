@@ -18,7 +18,6 @@ const TaskList = () => {
   const user = auth.currentUser;
   const [showIntro, setShowIntro] = useState(false);
 
-
   // Função de verificação do primeiro uso
   useEffect(() => {
     const checkFirstTime = async () => {
