@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, FlatList, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, FlatList, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { db } from '@/firebaseConfig';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import colors from '@/constants/colors';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -98,7 +98,36 @@ const TaskDetails = () => {
       console.error("Erro ao salvar alterações:", error);
     }
   };
-  
+
+
+  // Função para deletar a tarefa
+  const deletarTarefa = async () => {
+    Alert.alert(
+      "Deletar Tarefa",
+      "Você realmente deseja deletar esta tarefa?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Deletar",
+          onPress: async () => {
+            if (id) {
+              try {
+                await deleteDoc(doc(db, "Tarefas", id as string));
+                alert("Tarefa deletada com sucesso!");
+                router.replace('/(panel)/GeneralScreen/page'); // Redireciona após deletar
+              } catch (error) {
+                console.error("Erro ao deletar tarefa:", error);
+              }
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -131,7 +160,6 @@ const TaskDetails = () => {
             onChangeText={setDescricao}
             placeholder="Alterar descrição"
           />
-          {/* Picker para alterar a prioridade */}
           <Text style={styles.inputLabel}>Prioridade:</Text>
           <Picker
             selectedValue={prioridade}
@@ -162,19 +190,11 @@ const TaskDetails = () => {
 
           <View style={styles.section}>
             <View style={styles.priorityContainer}>
-            <Text style={styles.TextPriority}>Prioridade:</Text>
+              <Text style={styles.TextPriority}>Prioridade:</Text>
               <MaterialIcons
-                name={
-                  prioridade === 'alta' ? 'warning' :  // Ícone de alerta para alta prioridade
-                  prioridade === 'media' ? 'warning' :  // Ícone de alerta para média prioridade
-                  'warning'  // Ícone de alerta para baixa prioridade
-                }
+                name={prioridade === 'alta' ? 'warning' : 'warning'}
                 size={24}
-                color={
-                  prioridade === 'alta' ? 'red' :
-                  prioridade === 'media' ? 'yellow' :
-                  'green'
-                }
+                color={prioridade === 'alta' ? 'red' : 'green'}
               />
             </View>
           </View>
@@ -226,6 +246,11 @@ const TaskDetails = () => {
           <Text style={styles.buttonText}>Salvar Alterações</Text>
         </TouchableOpacity>
       )}
+
+      {/* Botão de deletar tarefa */}
+      <TouchableOpacity onPress={deletarTarefa} style={[styles.button, styles.buttonDeletar]}>
+        <Text style={styles.buttonText}>Deletar Tarefa</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={[styles.button, styles.buttonVoltar]} onPress={voltar}>
         <Text style={styles.buttonTextVoltar}>Voltar</Text>
@@ -347,6 +372,10 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginVertical: 10,
     alignItems: 'center',
+  },
+
+  buttonDeletar: {
+    backgroundColor: '#FF0000',
   },
   buttonText: {
     fontSize: 16,

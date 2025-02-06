@@ -14,7 +14,7 @@ export async function showNotification() {
       body: 'Você tem uma nova Tarefa para concluir',
     },  
     trigger: {
-      seconds: 5,
+      seconds: 3,
       channelId: 'Tarefas'
     }, 
   });
