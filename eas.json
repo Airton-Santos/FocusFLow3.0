@@ -15,6 +15,12 @@
     "production": {
       "autoIncrement": true,
       "channel": "production"
+    },
+    "android": {
+      "release": {
+        "buildType": "apk",
+        "workflow": "managed"
+      }
     }
   },
   "submit": {
