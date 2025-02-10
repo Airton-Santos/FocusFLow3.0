@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, Alert } from 'react-native';
-import { getAuth, signOut, updateProfile, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword } from 'firebase/auth';
+import { getAuth, signOut, updateProfile, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, deleteUser } from 'firebase/auth';
 import { Button } from 'react-native-paper';
 import md5 from 'md5';
 import colors from '@/constants/colors';
 import { TextInput } from 'react-native-paper';
 import { useRouter } from 'expo-router';
-
+import { getFirestore, doc, deleteDoc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 
 const ProfileScreen = () => {
+  const db = getFirestore();
   const auth = getAuth();
   const user = auth.currentUser;
   const router = useRouter();
   const [mostrarSenha, setMostrarSenha] = useState(false);
-
   const [name, setName] = useState<string>(user?.displayName || '');
   const [newEmail, setNewEmail] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
@@ -24,7 +24,7 @@ const ProfileScreen = () => {
     return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
   };
 
-  const validarSenha = (senha: string) => {  // Garantir que a senha tenha 1 letra maiscula uma minuscula, números e caracter especial
+  const validarSenha = (senha: string) => {  
     const requisitos = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]{6,}$/;
     return requisitos.test(senha);
   };
@@ -68,12 +68,11 @@ const ProfileScreen = () => {
       return;
     }
     if (!validarSenha(newPassword)) {
-          Alert.alert("A senha deve ter no mínimo 6 caracteres, uma letra maiúscula, uma minúscula, um número e um caractere especial.")
+      Alert.alert("A senha deve ter no mínimo 6 caracteres, uma letra maiúscula, uma minúscula, um número e um caractere especial.");
       return;
     }
 
-    try {
-      // Apenas se o usuário estiver autenticado, podemos chamar updatePassword diretamente
+    try { 
       await updatePassword(user, newPassword);
       Alert.alert('Sucesso', 'Senha atualizada com sucesso!');
     } catch (error: any) {
@@ -84,7 +83,49 @@ const ProfileScreen = () => {
   const deslogar = async () => {
     await signOut(auth);
     router.replace('/(auth)/mainPage/page');
-  }
+  };
+
+  const excluirConta = async () => {
+    if (!user) return;
+  
+    Alert.alert(
+      "Confirmação",
+      "Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              // Realizando a consulta para pegar todas as tarefas do usuário
+              const tarefasRef = collection(db, "Tarefas");
+              const q = query(tarefasRef, where("idUser", "==", user.uid));
+  
+              // Buscando as tarefas
+              const querySnapshot = await getDocs(q);
+  
+              // Excluindo todas as tarefas encontradas
+              querySnapshot.forEach(async (docSnapshot) => {
+                const tarefaDoc = docSnapshot; // DocumentSnapshot do Firestore
+                await deleteDoc(doc(db, "Tarefas", tarefaDoc.id)); // Exclui a tarefa
+              });
+  
+              // Após excluir as tarefas, exclua o usuário
+              await deleteUser(user); // Exclui conta no Firebase
+              await signOut(auth); // Faz logout do usuário
+              router.replace('/(auth)/mainPage/page'); // Redireciona para a página inicial
+  
+              Alert.alert("Sucesso", "Conta e tarefas excluídas com sucesso!");
+            } catch (error) {
+              console.error("Erro ao excluir conta:", error);
+              Alert.alert("Erro", "Não foi possível excluir sua conta.");
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <View style={styles.screen}>
@@ -112,13 +153,16 @@ const ProfileScreen = () => {
         right={<TextInput.Icon 
           icon={mostrarSenha ? "eye-off" : "eye"} 
           onPress={() => setMostrarSenha(!mostrarSenha)}
-        />} 
+        />}
       />
       <Button onPress={handleUpdatePassword} style={styles.btn} labelStyle={styles.btnText} contentStyle={styles.btnTamanho} mode="contained">
         Atualizar Senha
       </Button>
       <Button onPress={deslogar} style={styles.btnDeslogar} labelStyle={styles.btnText} contentStyle={styles.btnTamanho} mode="contained">
         Deslogar
+      </Button>
+      <Button onPress={excluirConta} style={styles.btnExcluir} labelStyle={styles.btnText} contentStyle={styles.btnTamanho} mode="contained">
+        Excluir Conta
       </Button>
     </View>
   );
@@ -170,8 +214,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   btnDeslogar: {
-    margin: 50,
+    margin: 30,
     backgroundColor: colors.ColorBtnSair
+  },
+  btnExcluir: {
+    margin: 10,
+    backgroundColor: colors.LaranjaClaro
   }
 });
 

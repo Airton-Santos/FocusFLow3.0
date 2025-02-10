@@ -192,9 +192,9 @@ const TaskDetails = () => {
             <View style={styles.priorityContainer}>
               <Text style={styles.TextPriority}>Prioridade:</Text>
               <MaterialIcons
-                name={prioridade === 'alta' ? 'warning' : 'warning'}
+                name={prioridade === 'Alta' ? 'warning' : prioridade === 'Média' ? 'warning' : 'warning'}
                 size={24}
-                color={prioridade === 'alta' ? 'red' : 'green'}
+                color={prioridade === 'Alta' ? 'red' : prioridade === 'Média' ? colors.Amarelo01: colors.AzulCinzentado}
               />
             </View>
           </View>

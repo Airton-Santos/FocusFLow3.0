@@ -118,10 +118,14 @@ const TaskList = () => {
               <View style={styles.header}>
                 <Text style={styles.taskTitle}>{item.titulo}</Text>
                 <MaterialIcons 
-                  name={item.prioridade === 'alta' ? 'warning' : item.prioridade === 'media' ? 'warning' : 'warning'}
+                  name="warning"
                   size={24} 
-                  color={item.prioridade === 'alta' ? 'red' : item.prioridade === 'media' ? colors.Amarelo01 : colors.AzulCinzentado}
-                />
+                  color={
+                    item.prioridade === 'Alta' ? 'red' :
+                    item.prioridade === 'Média' ? colors.Amarelo01 :
+                    item.prioridade === 'Baixa' ? colors.AzulCinzentado : '#FFFFFF'
+                      }
+                    />
               </View>
 
               <Text style={styles.taskDescription}>{item.description}</Text>
