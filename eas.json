@@ -18,8 +18,7 @@
     },
     "android": {
       "release": {
-        "buildType": "apk",
-        "workflow": "managed"
+        "buildType": "apk"
       }
     }
   },
