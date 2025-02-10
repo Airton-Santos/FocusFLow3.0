@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "FocusFlowV3",
-    "slug": "FocusFlowV3",
+    "name": "FocusFlow",
+    "slug": "FocusFlow",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
