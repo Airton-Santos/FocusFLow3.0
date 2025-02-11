@@ -53,16 +53,33 @@ const TaskDetails = () => {
   const toggleSubtarefa = async (index: number) => {
     const novasSubtarefas = [...subtarefas];
     novasSubtarefas[index].concluido = !novasSubtarefas[index].concluido;
-    setSubtarefas(novasSubtarefas);  
+    setSubtarefas(novasSubtarefas);
+  
+    // Verifique se todas as subtarefas estão concluídas
+    const todasConcluidas = novasSubtarefas.every(sub => sub.concluido);
     
+    // Atualize o campo conclusaoDaTarefa se todas as subtarefas estiverem concluídas
+    if (todasConcluidas) {
+      try {
+        await updateDoc(doc(db, "Tarefas", id as string), {
+          conclusaoDaTarefa: true,  // Atualiza o campo de conclusão da tarefa
+        });
+      } catch (error) {
+        console.error("Erro ao atualizar a tarefa:", error);
+      }
+    }
+  
     try {
       await updateDoc(doc(db, "Tarefas", id as string), {
-        subtarefas: novasSubtarefas,
+        subtarefas: novasSubtarefas,  // Atualiza as subtarefas
       });
     } catch (error) {
       console.error("Erro ao atualizar subtarefa:", error);
     }
   };
+  
+  
+  
 
   const adicionarSubtarefa = async () => {
     if (!novaSubtarefa) return; 

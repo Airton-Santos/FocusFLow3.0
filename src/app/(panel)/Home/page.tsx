@@ -141,13 +141,16 @@ const TaskList = () => {
               <Text style={styles.taskDescription}>{item.description}</Text>
 
               <View style={styles.statusContainer}>
+                {/* Ícone com cor condicional baseado em 'conclusaoDaTarefa' */}
                 <MaterialIcons
-                  name={item.concluida ? 'check-circle' : 'cancel'}
+                  name={item.conclusaoDaTarefa ? 'check-circle' : 'cancel'}
                   size={30}
-                  color={item.concluida ? colors.Verde0 : colors.LaranjaClaro}
+                  color={item.conclusaoDaTarefa ? colors.Verde0 : colors.LaranjaClaro}  // Verde para concluída, laranja para não concluída
                 />
-                <Text style={[styles.status, item.concluida ? styles.statusConcluida : styles.statusNaoConcluida]}>
-                  {item.concluida ? "Concluída" : "Não Concluída"}
+                
+                {/* Texto com cor condicional */}
+                <Text style={[styles.status, item.conclusaoDaTarefa ? styles.statusConcluida : styles.statusNaoConcluida]}>
+                  {item.conclusaoDaTarefa ? "Concluída" : "Não Concluída"}
                 </Text>
               </View>
 
@@ -206,7 +209,7 @@ const styles = StyleSheet.create({
   fabStyle: {
     backgroundColor: '#transparent',  // Cor de fundo transparente ou branca
     justifyContent: 'center',  // Alinha o conteúdo no centro da tela
-    padding: 20, // Espaçamento interno
+    padding: 10, // Espaçamento interno
   },
   title: {
     fontSize: 24,
@@ -252,10 +255,11 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   statusConcluida: {
-    color: colors.Verde0,
+    color: colors.Verde0,  // Verde quando a tarefa estiver concluída
   },
+
   statusNaoConcluida: {
-    color: colors.LaranjaClaro,
+    color: colors.LaranjaClaro,  // Laranja quando não estiver concluída
   },
   progresso: {
     color: '#FFF',
