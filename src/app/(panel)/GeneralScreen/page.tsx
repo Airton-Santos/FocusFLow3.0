@@ -1,6 +1,9 @@
 import React from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView, View, StyleSheet } from 'react-native';
 import BottomTabs from '@/src/app/BottomTabs';
+
+
+
 
 export default function App() {
   return (
@@ -9,3 +12,10 @@ export default function App() {
     </SafeAreaView>
   );
 }
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#2D2D29',
+    padding: 20,
+  },
+});

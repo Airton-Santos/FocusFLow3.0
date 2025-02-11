@@ -13,6 +13,7 @@ type Route = {
   unfocusedIcon: string;
 };
 
+
 export default function BottomTabs() {
   const [index, setIndex] = useState<number>(0);
   const [isTutorialActive, setIsTutorialActive] = useState<boolean>(false);
@@ -37,6 +38,7 @@ export default function BottomTabs() {
   };
 
   return (
+
     <BottomNavigation
       navigationState={{ index, routes }}
       onIndexChange={(newIndex: number) => {
@@ -50,6 +52,7 @@ export default function BottomTabs() {
       activeColor={colors.Preto0}
       inactiveColor={colors.ColorText}
     />
+
   );
 }
 

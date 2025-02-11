@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Modal, NativeScrollEvent, NativeSyntheticEvent  } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Modal } from 'react-native';
 import { db } from '@/firebaseConfig';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { auth } from '@/firebaseConfig';
@@ -9,8 +9,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import colors from '@/constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RobotIntro from '@/src/componentes/roboIntro';
-import { FAB, Portal, PaperProvider } from 'react-native-paper';
-
+import { FAB } from 'react-native-paper';
 
 type State = {
   open: boolean;
@@ -27,9 +26,6 @@ const TaskList = () => {
 
   const { open } = state;
 
-
-
-  // Função de verificação do primeiro uso
   useEffect(() => {
     const checkFirstTime = async () => {
       const hasSeenIntro = await AsyncStorage.getItem('hasSeenIntro');
@@ -45,7 +41,6 @@ const TaskList = () => {
     setShowIntro(false);
   };
 
-  // Função para verificação de e-mail
   const checkEmailVerification = () => {
     if (user && !user.emailVerified) {
       Alert.alert(
@@ -68,7 +63,6 @@ const TaskList = () => {
     }
   };
 
-  // Função para calcular o progresso
   const calcularProgresso = (subtarefas?: { concluido: boolean }[], concluida?: boolean) => {
     if (concluida) return 100; 
     if (!subtarefas || subtarefas.length === 0) return 0; 
@@ -76,7 +70,6 @@ const TaskList = () => {
     return Math.round((concluidos / subtarefas.length) * 100); 
   };
 
-  // Carregar tarefas do Firestore
   const carregarTarefas = () => {
     setLoading(true);
     if (user) {
@@ -99,7 +92,6 @@ const TaskList = () => {
     }
   };
 
-  // Carregar tarefas ao montar o componente
   useEffect(() => {
     checkEmailVerification();
     carregarTarefas();  
@@ -108,7 +100,6 @@ const TaskList = () => {
     };
   }, []);
 
-               
   return (
     <View style={styles.container}>
       <Modal visible={showIntro} transparent animationType="fade">
@@ -141,14 +132,12 @@ const TaskList = () => {
               <Text style={styles.taskDescription}>{item.description}</Text>
 
               <View style={styles.statusContainer}>
-                {/* Ícone com cor condicional baseado em 'conclusaoDaTarefa' */}
                 <MaterialIcons
                   name={item.conclusaoDaTarefa ? 'check-circle' : 'cancel'}
                   size={30}
-                  color={item.conclusaoDaTarefa ? colors.Verde0 : colors.LaranjaClaro}  // Verde para concluída, laranja para não concluída
+                  color={item.conclusaoDaTarefa ? colors.Verde0 : colors.LaranjaClaro} 
                 />
                 
-                {/* Texto com cor condicional */}
                 <Text style={[styles.status, item.conclusaoDaTarefa ? styles.statusConcluida : styles.statusNaoConcluida]}>
                   {item.conclusaoDaTarefa ? "Concluída" : "Não Concluída"}
                 </Text>
@@ -169,31 +158,12 @@ const TaskList = () => {
         />
       )}
 
-    <PaperProvider>
-      <View>
-        {/* Seu conteúdo de tarefas aqui */}
-
-        {/* FAB Flutuante */}
-        <Portal >
-          <FAB.Group style={styles.fabStyle}
-            open={open}
-            backdropColor='transparent'
-            visible
-            icon={open ? 'minus' : 'plus'}
-            actions={[
-              { icon: 'plus', onPress: () => router.navigate('/(panel)/AddTasks/page') },
-            ]}
-            onStateChange={onStateChange}
-            onPress={() => {
-              if (open) {
-                // Aqui você pode adicionar a lógica do que acontece ao clicar no FAB aberto
-              }
-            }}
-          />
-        </Portal>
-      </View>
-    </PaperProvider>
-
+      {/* Botão FAB fixo */}
+      <FAB
+        style={styles.fab}
+        icon="plus"
+        onPress={() => router.navigate('/(panel)/AddTasks/page')}
+      />
     </View>
   );
 };
@@ -206,10 +176,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#2D2D29',
     padding: 20,
   },
-  fabStyle: {
-    backgroundColor: '#transparent',  // Cor de fundo transparente ou branca
-    justifyContent: 'center',  // Alinha o conteúdo no centro da tela
-    padding: 10, // Espaçamento interno
+  fab: {
+    position: 'absolute',
+    bottom: 20,  // Coloca o botão 20 unidades do fundo
+    right: 20,   // Alinha o botão à direita
+    backgroundColor: colors.Ciano1, // Cor do FAB
   },
   title: {
     fontSize: 24,
@@ -255,11 +226,10 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   statusConcluida: {
-    color: colors.Verde0,  // Verde quando a tarefa estiver concluída
+    color: colors.Verde0,
   },
-
   statusNaoConcluida: {
-    color: colors.LaranjaClaro,  // Laranja quando não estiver concluída
+    color: colors.LaranjaClaro,
   },
   progresso: {
     color: '#FFF',
