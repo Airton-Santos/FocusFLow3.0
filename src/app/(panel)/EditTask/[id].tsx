@@ -57,9 +57,18 @@ const TaskDetails = () => {
   
     // Verifique se todas as subtarefas estão concluídas
     const todasConcluidas = novasSubtarefas.every(sub => sub.concluido);
-    
-    // Atualize o campo conclusaoDaTarefa se todas as subtarefas estiverem concluídas
-    if (todasConcluidas) {
+  
+    // Se alguma subtarefa for desmarcada, a tarefa volta a não ser concluída
+    if (!todasConcluidas) {
+      try {
+        await updateDoc(doc(db, "Tarefas", id as string), {
+          conclusaoDaTarefa: false,  // A tarefa volta a não concluída
+        });
+      } catch (error) {
+        console.error("Erro ao atualizar a tarefa:", error);
+      }
+    } else {
+      // Caso todas as subtarefas estejam concluídas, a tarefa é marcada como concluída
       try {
         await updateDoc(doc(db, "Tarefas", id as string), {
           conclusaoDaTarefa: true,  // Atualiza o campo de conclusão da tarefa
@@ -78,24 +87,31 @@ const TaskDetails = () => {
     }
   };
   
-  
-  
-
   const adicionarSubtarefa = async () => {
-    if (!novaSubtarefa) return; 
-
+    if (!novaSubtarefa) return;
+  
     const novasSubtarefas = [...subtarefas, { nome: novaSubtarefa, concluido: false }];
     setSubtarefas(novasSubtarefas);
-    setNovaSubtarefa(""); 
-
+    setNovaSubtarefa("");
+  
+    // A tarefa volta a não ser concluída quando uma nova subtarefa é adicionada
     try {
       await updateDoc(doc(db, "Tarefas", id as string), {
-        subtarefas: novasSubtarefas
+        conclusaoDaTarefa: false,  // Marca a tarefa como não concluída
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar a tarefa:", error);
+    }
+  
+    try {
+      await updateDoc(doc(db, "Tarefas", id as string), {
+        subtarefas: novasSubtarefas,  // Atualiza as subtarefas
       });
     } catch (error) {
       console.error("Erro ao adicionar subtarefa:", error);
     }
   };
+  
 
   const salvarAlteracoes = async () => {
     if (!id) return;
@@ -138,6 +154,36 @@ const TaskDetails = () => {
               } catch (error) {
                 console.error("Erro ao deletar tarefa:", error);
               }
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const deletarSubtarefa = async (index: number) => {
+    Alert.alert(
+      "Deletar Subtarefa",
+      "Você realmente deseja deletar esta subtarefa?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Deletar",
+          onPress: async () => {
+            const novasSubtarefas = [...subtarefas];
+            novasSubtarefas.splice(index, 1); // Remove a subtarefa pela posição
+            setSubtarefas(novasSubtarefas);
+  
+            try {
+              await updateDoc(doc(db, "Tarefas", id as string), {
+                subtarefas: novasSubtarefas, // Atualiza a lista de subtarefas no Firebase
+              });
+              alert("Subtarefa deletada com sucesso!");
+            } catch (error) {
+              console.error("Erro ao deletar subtarefa:", error);
             }
           },
         },
@@ -220,25 +266,30 @@ const TaskDetails = () => {
 
       <Text style={styles.subtitle}>Subtarefas:</Text>
       <FlatList
-        data={subtarefas}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item, index }) => (
-          <View style={styles.subtarefaContainer}>
-            <TouchableOpacity 
-              style={styles.subtarefaRow}
-              onPress={() => toggleSubtarefa(index)} 
-            >
-              <MaterialIcons
-                name={item.concluido ? 'check-circle' : 'radio-button-unchecked'}
-                size={24}
-                color={item.concluido ? 'green' : 'red'}
-              />
-              <Text style={[styles.subtarefaTexto, item.concluido && styles.subtarefaConcluida]}>
-                {item.nome}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+          data={subtarefas}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item, index }) => (
+            <View style={styles.subtarefaContainer}>
+              <TouchableOpacity
+                style={styles.subtarefaRow}
+                onPress={() => toggleSubtarefa(index)}
+              >
+                <MaterialIcons
+                  name={item.concluido ? 'check-circle' : 'radio-button-unchecked'}
+                  size={24}
+                  color={item.concluido ? 'green' : 'red'}
+                />
+                <Text style={[styles.subtarefaTexto, item.concluido && styles.subtarefaConcluida]}>
+                  {item.nome}
+                </Text>
+              </TouchableOpacity>
+              {modoEdicao && (
+                <TouchableOpacity onPress={() => deletarSubtarefa(index)}>
+                  <MaterialIcons name="delete" size={24} color="red" />
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
       />
 
       <View style={styles.addSubtarefaContainer}>
