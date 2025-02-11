@@ -34,6 +34,10 @@ export default function MainLayout() {
           name='(panel)/EditTask/[id]'
           options={{ headerShown: false }}
       />
+       <Stack.Screen 
+          name='(panel)/AddTasks/page'
+          options={{ headerShown: false }}
+      />
     </Stack>
   )
 }

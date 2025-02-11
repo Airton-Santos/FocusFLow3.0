@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Modal } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Modal, NativeScrollEvent, NativeSyntheticEvent  } from 'react-native';
 import { db } from '@/firebaseConfig';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { auth } from '@/firebaseConfig';
@@ -9,7 +9,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import colors from '@/constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RobotIntro from '@/src/componentes/roboIntro';
+import { FAB, Portal, PaperProvider } from 'react-native-paper';
 
+
+type State = {
+  open: boolean;
+};
 
 const TaskList = () => {
   const [tarefas, setTarefas] = useState<any[]>([]); 
@@ -17,6 +22,12 @@ const TaskList = () => {
   const router = useRouter();
   const user = auth.currentUser;
   const [showIntro, setShowIntro] = useState(false);
+  const [state, setState] = React.useState<State>({ open: false });
+  const onStateChange = ({ open }: { open: boolean }) => setState({ open });
+
+  const { open } = state;
+
+
 
   // Função de verificação do primeiro uso
   useEffect(() => {
@@ -97,6 +108,7 @@ const TaskList = () => {
     };
   }, []);
 
+               
   return (
     <View style={styles.container}>
       <Modal visible={showIntro} transparent animationType="fade">
@@ -120,12 +132,10 @@ const TaskList = () => {
                 <MaterialIcons 
                   name="warning"
                   size={24} 
-                  color={
-                    item.prioridade === 'Alta' ? 'red' :
+                  color={item.prioridade === 'Alta' ? 'red' :
                     item.prioridade === 'Média' ? colors.Amarelo01 :
-                    item.prioridade === 'Baixa' ? colors.AzulCinzentado : '#FFFFFF'
-                      }
-                    />
+                    item.prioridade === 'Baixa' ? colors.AzulCinzentado : '#FFFFFF'}
+                />
               </View>
 
               <Text style={styles.taskDescription}>{item.description}</Text>
@@ -155,6 +165,32 @@ const TaskList = () => {
           )}
         />
       )}
+
+    <PaperProvider>
+      <View>
+        {/* Seu conteúdo de tarefas aqui */}
+
+        {/* FAB Flutuante */}
+        <Portal >
+          <FAB.Group style={styles.fabStyle}
+            open={open}
+            backdropColor='transparent'
+            visible
+            icon={open ? 'minus' : 'plus'}
+            actions={[
+              { icon: 'plus', onPress: () => router.navigate('/(panel)/AddTasks/page') },
+            ]}
+            onStateChange={onStateChange}
+            onPress={() => {
+              if (open) {
+                // Aqui você pode adicionar a lógica do que acontece ao clicar no FAB aberto
+              }
+            }}
+          />
+        </Portal>
+      </View>
+    </PaperProvider>
+
     </View>
   );
 };
@@ -166,6 +202,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#2D2D29',
     padding: 20,
+  },
+  fabStyle: {
+    backgroundColor: '#transparent',  // Cor de fundo transparente ou branca
+    justifyContent: 'center',  // Alinha o conteúdo no centro da tela
+    padding: 20, // Espaçamento interno
   },
   title: {
     fontSize: 24,

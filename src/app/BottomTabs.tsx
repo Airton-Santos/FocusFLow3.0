@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { BottomNavigation } from 'react-native-paper';
 import HomeScreen from '@/src/app/(panel)/Home/page';
-import AddTaskScreen from '@/src/app/(panel)/AddTasks/page';
 import ProfileScreen from '@/src/app/(panel)/profile/page';
 import TutorialScreen from '@/src/app/(panel)/Info/page';
 import { StyleSheet } from 'react-native';
@@ -20,7 +19,6 @@ export default function BottomTabs() {
 
   const [routes] = useState<Route[]>([
     { key: 'home', title: 'Home', focusedIcon: 'home', unfocusedIcon: 'home-outline' },
-    { key: 'addTask', title: 'Add', focusedIcon: 'plus-box', unfocusedIcon: 'plus-box-outline' },
     { key: 'profile', title: 'Profile', focusedIcon: 'account-box', unfocusedIcon: 'account-box-outline' },
     { key: 'tutorial', title: 'Tutorial', focusedIcon: 'help-circle', unfocusedIcon: 'help-circle-outline' },
   ]);
@@ -29,8 +27,6 @@ export default function BottomTabs() {
     switch (route.key) {
       case 'home':
         return <HomeScreen />;
-      case 'addTask':
-        return <AddTaskScreen />;
       case 'profile':
         return <ProfileScreen />;
       case 'tutorial':
